@@ -1,0 +1,2 @@
+# daily-note
+ddddddddddddddddddddddddd
