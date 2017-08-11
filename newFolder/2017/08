@@ -1,3 +1,5 @@
 7=nothing
 8=NullPoint排除,OutOfRange排除,StringUtils.split(str,"XXX")改成str.split("XXX"),push分支错误,以后要注意
 9=定义组团接口,研究组团的内容 P.S.查询团（时间）怎么处理，时间段还是时间点
+10=过组团test case，修改接口，实现部分service
+11=实现部分组团service
