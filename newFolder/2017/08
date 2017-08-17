@@ -6,3 +6,4 @@
 14=实现部分组团service
 15=实现saveGroup的service，修改list的service，等等
 16=实现saveGroup，addTarget的service，修改service，等等
+17=实现releaseGroup，validate，修改了saveGroup，deleteGroup的service，修改service，等等(效率低下?)
