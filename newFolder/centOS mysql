@@ -1,0 +1,43 @@
+http://blog.csdn.net/xinxin19881112/article/details/46873811
+
+
+http://blog.csdn.net/albertfly/article/details/73498218
+
+
+参考  具体安装流程！！
+
+centos 6.5 yum安装mysql5.6 
+
+http://2860664.blog.51cto.com/2850664/1553642/
+
+1、删除系统自带的mysql
+
+   rpm -qa|grep mysql
+
+   yum remove mysql-libs
+
+2、安装mysql YUM源
+
+   wget http://repo.mysql.com/mysql-community-release-el6-5.noarch.rpm
+
+   rpm -ivh mysql-community-release-el6-5.noarch.rpm
+
+3、安装mysql 
+
+   yum install mysql-server mysql-devel
+
+4、root密码设置
+
+   service mysqld stop
+
+   mysqld_safe --skip-grant-tables &      mysql -u root -p         //这个一行输进去                        
+
+                                                            回车直接进去，或者随便输入一个密码
+
+      use mysql;
+
+      update user set password=PASSWORD("newpass")where user="root";     更改密码为 newpassord
+
+   flush privileges;                                                                                             更新权限
+
+      quit
