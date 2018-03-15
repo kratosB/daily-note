@@ -1,0 +1,9 @@
+@RunWith(SpringJUnit4ClassRunner.class)
+@ActiveProfiles("test, dev")
+@SpringBootTest(properties = {"ENV=t3"})
+public class ControllerTest {
+}
+
+这里读的配置是main/resources下的bootstrap，貌似也能读test/resources下的，没有试过，见帖子描述
+
+https://stackoverflow.com/questions/41985262/spring-boot-test-overriding-bootstrap-properties
