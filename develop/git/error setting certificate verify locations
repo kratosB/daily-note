@@ -1,0 +1,45 @@
+错误信息
+
+使用TortoiseGit执行pull命令时显示
+
+git.exe pull --progress --no-rebase -v "origin"
+
+fatal: unable to access 'https://github.com/konsumer/arduinoscope.git/': error setting certificate verify locations:
+
+git version 2.9.2.windows.1
+
+----------------------------------------------------
+
+
+解决方法
+
+先打开git bash窗口
+执行命令：
+
+git config --system http.sslcainfo "C:\Program Files (x86)\git\bin\curl-ca-bundle.crt"
+（注意修改为正确的文件路径
+
+或
+
+git config --system http.sslverify false (20180411使用这个方法解决了问题)
+
+
+---------------------------------------------------------
+
+参考文章
+
+http://stackoverflow.com/questions/3778042/github-error-cloning-my-private-repository
+
+
+---------------------------------------------------------
+
+参考2
+
+今天在新电脑用git clone的时候出现一个错误，导致无法克隆成功，错误大体描述为“error setting certificate verify locations”，
+翻译为错误设置证书验证位置，为此我在网上寻找了很多方法都没有解决，也查看了本地\Git\mingw64\ssl\certs 下面确实有证书。
+
+最终找到解决方法，发现这个错误是系统证书的问题，系统判断到这个行为会造成不良影响，所以进行了阻止，只要设置跳过SSL证书验证就可以了，用命令 ：
+git config --global http.sslVerify false
+设置完成后继续clone，就可以了。
+
+
