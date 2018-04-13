@@ -1,0 +1,11 @@
+1. setting, version control > git 页面
+SSH executable 改成 native
+（不知道有没有影响，网上这么写的）
+
+2. 重新生成公私钥，放到github上
+
+打开 git-bash，输入 ssh-keygen -t rsa -C "你的帐号名"
+
+然后连续回车，会在user/下面生成一个.ssh文件夹，里面有id_rsa和id_rsa.pub
+
+打开id_rsa.pub，复制所有内容，放到git的setting的key里面
