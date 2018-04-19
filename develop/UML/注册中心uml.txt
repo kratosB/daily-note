@@ -1,0 +1,44 @@
+@startuml
+participant 微服务A
+
+== 服务注册 ==
+
+微服务A -> 注册中心3001: 注册服务（发送元数据）
+activate 注册中心3001
+注册中心3001 -> 注册中心3001: 注册服务（微服务A）
+deactivate 注册中心3001
+
+== 维持心跳 ==
+
+loop 
+    微服务A -> 注册中心3001: 服务续约（发送心跳）
+    activate 注册中心3001
+    微服务A <- 注册中心3001: 返回200
+    deactivate 注册中心3001
+end
+
+== 获取注册列表信息 ==
+
+loop 
+    微服务A -> 注册中心3001: 获取注册列表信息
+    activate 注册中心3001
+    微服务A <- 注册中心3001: 返回注册列表信息
+    note right
+	   跟发送心跳同时进行
+    循环，不存在先后顺序
+    end note
+    deactivate 注册中心3001
+end
+
+== 请求其他服务 ==
+
+微服务A -> 微服务B: 发送请求
+activate 微服务B
+note right
+根据注册中心3001
+返回的注册列表
+end note
+微服务A <- 微服务B: 返回结果
+deactivate 微服务B
+
+@enduml

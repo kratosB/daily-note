@@ -1,0 +1,27 @@
+@startuml
+participant 外部请求端
+
+外部请求端 -> 网关3003: http请求
+activate 网关3003
+网关3003 -> 网关3003: 过滤器处理请求
+activate 网关3003
+网关3003 -> 鉴权中心3002: 权限校验
+activate 鉴权中心3002
+网关3003 <- 鉴权中心3002: 返回校验结果
+deactivate 鉴权中心3002
+deactivate 网关3003
+alt 鉴权通过
+    网关3003 -> 微服务A: 根据api转发请求
+    activate 微服务A
+    note right
+    鉴权通过才转发，
+    鉴权不通过直接返回
+    end note
+    网关3003 <- 微服务A: 返回结果
+    deactivate 微服务A
+end
+网关3003 -> 网关3003: 过滤器处理请求
+外部请求端 <- 网关3003: 返回结果
+deactivate 网关3003
+
+@enduml
