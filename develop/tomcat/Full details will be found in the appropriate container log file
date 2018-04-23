@@ -1,0 +1,148 @@
+遇到一个tomcat启动之后自动关掉的bug，解决思路如下
+
+1. 通过注册中心和swagger查看服务情况，发现t3的1003是好的，hotfix的是不能用的。 查看Catalina日志
+===================================================================
+2018-04-23 11:00:55.605  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] c.i.mapi.MobileGatewayApplication        : Started MobileGatewayApplication in 70.91 seconds (JVM running for 78.235)
+23-Apr-2018 11:00:55.626 严重 [localhost-startStop-1] org.apache.catalina.core.StandardContext.startInternal One or more listeners failed to start. Full details will be found in the appropriate container log file
+2018-04-23 11:00:55.777  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.a.c.util.SessionIdGeneratorBase        : Creation of SecureRandom instance for session ID generation using [SHA1PRNG] took [149] milliseconds.
+23-Apr-2018 11:00:55.777 严重 [localhost-startStop-1] org.apache.catalina.core.StandardContext.startInternal Context [] startup failed due to previous errors
+2018-04-23 11:00:55.784  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] ationConfigEmbeddedWebApplicationContext : Closing org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@7c60bb70: startup date [Mon Apr 23 10:59:53 CST 2018]; parent: org.springframework.context.annotation.AnnotationConfigApplicationContext@9e1f724
+2018-04-23 11:00:55.785  WARN [mobile-service,,,] 30946 --- [ost-startStop-1] com.netflix.discovery.DiscoveryClient    : Saw local status change event StatusChangeEvent [timestamp=1524452455785, current=DOWN, previous=UP]
+2018-04-23 11:00:55.786  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] s.c.a.AnnotationConfigApplicationContext : Closing org.springframework.context.annotation.AnnotationConfigApplicationContext@1579007a: startup date [Mon Apr 23 11:00:53 CST 2018]; parent: org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@7c60bb70
+2018-04-23 11:00:55.817  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.c.support.DefaultLifecycleProcessor  : Stopping beans in phase 2147483647
+2018-04-23 11:00:55.820  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.c.support.DefaultLifecycleProcessor  : Stopping beans in phase 2147482647
+2018-04-23 11:00:55.821  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.a.r.l.SimpleMessageListenerContainer : Waiting for workers to finish.
+2018-04-23 11:00:55.821  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.a.r.l.SimpleMessageListenerContainer : Successfully waited for workers to finish.
+2018-04-23 11:00:55.822  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.i.a.i.AmqpInboundChannelAdapter      : stopped inbound.springCloudBus.anonymous.w3CLp4CtT-mA0CsUvxfnPg
+2018-04-23 11:00:55.822  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.c.support.DefaultLifecycleProcessor  : Stopping beans in phase 0
+2018-04-23 11:00:55.822  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.i.endpoint.EventDrivenConsumer       : Removing {logging-channel-adapter:_org.springframework.integration.errorLogger} as a subscriber to the 'errorChannel' channel
+2018-04-23 11:00:55.823  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.i.channel.PublishSubscribeChannel    : Channel 'mobile-service:hotfix, dev:21003.errorChannel' has 0 subscriber(s).
+2018-04-23 11:00:55.823  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.i.endpoint.EventDrivenConsumer       : stopped _org.springframework.integration.errorLogger
+2018-04-23 11:00:55.823  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.i.e.SourcePollingChannelAdapter      : stopped sleuthStreamSpanReporter.poll.inboundChannelAdapter
+2018-04-23 11:00:55.823  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.c.support.DefaultLifecycleProcessor  : Stopping beans in phase -2147482648
+2018-04-23 11:00:55.827  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.s.c.ThreadPoolTaskScheduler          : Shutting down ExecutorService 'taskScheduler'
+2018-04-23 11:00:55.827  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.i.monitor.IntegrationMBeanExporter   : Unregistering JMX-exposed beans on shutdown
+2018-04-23 11:00:55.828  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.i.monitor.IntegrationMBeanExporter   : Unregistering JMX-exposed beans
+2018-04-23 11:00:55.828  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.i.monitor.IntegrationMBeanExporter   : Summary on shutdown: sleuth
+2018-04-23 11:00:55.828  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.i.monitor.IntegrationMBeanExporter   : Summary on shutdown: errorChannel
+2018-04-23 11:00:55.828  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.i.monitor.IntegrationMBeanExporter   : Summary on shutdown: springCloudBusOutput
+2018-04-23 11:00:55.828  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.i.monitor.IntegrationMBeanExporter   : Summary on shutdown: nullChannel
+2018-04-23 11:00:55.828  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.i.monitor.IntegrationMBeanExporter   : Summary on shutdown: springCloudBusInput
+2018-04-23 11:00:55.828  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.i.monitor.IntegrationMBeanExporter   : Summary on shutdown: _org.springframework.integration.errorLogger.handler
+2018-04-23 11:00:55.829  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.i.monitor.IntegrationMBeanExporter   : Summary on shutdown: org.springframework.integration.endpoint.MethodInvokingMessageSource@54576890
+2018-04-23 11:00:55.829  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.j.e.a.AnnotationMBeanExporter        : Unregistering JMX-exposed beans on shutdown
+2018-04-23 11:00:55.829  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] o.s.j.e.a.AnnotationMBeanExporter        : Unregistering JMX-exposed beans
+2018-04-23 11:00:56.004  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2018-04-23 11:00:56.015  INFO [mobile-service,,,] 30946 --- [ost-startStop-1] com.alibaba.druid.pool.DruidDataSource   : {dataSource-1} closed
+23-Apr-2018 11:00:56.026 警告 [localhost-startStop-1] org.apache.catalina.loader.WebappClassLoaderBase.clearReferencesJdbc The web application [ROOT] registered the JDBC driver [com.alibaba.druid.proxy.DruidDriver] but failed to unregister it when the web application was stopped. To prevent a memory leak, the JDBC Driver has been forcibly unregistered.
+23-Apr-2018 11:00:56.026 警告 [localhost-startStop-1] org.apache.catalina.loader.WebappClassLoaderBase.clearReferencesJdbc The web application [ROOT] registered the JDBC driver [com.mysql.jdbc.Driver] but failed to unregister it when the web application was stopped. To prevent a memory leak, the JDBC Driver has been forcibly unregistered.
+23-Apr-2018 11:00:56.027 警告 [localhost-startStop-1] org.apache.catalina.loader.WebappClassLoaderBase.clearReferencesThreads The web application [ROOT] appears to have started a thread named [spring.cloud.inetutils] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.park(LockSupport.java:175)
+ java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:2039)
+ java.util.concurrent.LinkedBlockingQueue.take(LinkedBlockingQueue.java:442)
+ java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1067)
+ java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1127)
+ java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+ java.lang.Thread.run(Thread.java:745)
+23-Apr-2018 11:00:56.029 警告 [localhost-startStop-1] org.apache.catalina.loader.WebappClassLoaderBase.clearReferencesThreads The web application [ROOT] appears to have started a thread named [Abandoned connection cleanup thread] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ java.lang.Object.wait(Native Method)
+ java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:143)
+ com.mysql.jdbc.AbandonedConnectionCleanupThread.run(AbandonedConnectionCleanupThread.java:64)
+ java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+ java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+ java.lang.Thread.run(Thread.java:745)
+23-Apr-2018 11:00:56.030 警告 [localhost-startStop-1] org.apache.catalina.loader.WebappClassLoaderBase.clearReferencesThreads The web application [ROOT] appears to have started a thread named [RxIoScheduler-1 (Evictor)] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:215)
+ java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:2078)
+ java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1093)
+ java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:809)
+ java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1067)
+ java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1127)
+ java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+ java.lang.Thread.run(Thread.java:745)
+23-Apr-2018 11:00:56.032 严重 [localhost-startStop-1] org.apache.catalina.loader.WebappClassLoaderBase.checkThreadLocalMapForLeaks The web application [ROOT] created a ThreadLocal with key of type [com.netflix.hystrix.Hystrix$1] (value [com.netflix.hystrix.Hystrix$1@41b9eb71]) and a value of type [com.netflix.hystrix.Hystrix.ConcurrentStack] (value [com.netflix.hystrix.Hystrix$ConcurrentStack@77d10b6f]) but failed to remove it when the web application was stopped. Threads are going to be renewed over time to try and avoid a probable memory leak.
+23-Apr-2018 11:00:56.045 信息 [localhost-startStop-1] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory /data/tomcat_1003/webapps/ROOT has finished in 77,951 ms
+23-Apr-2018 11:00:56.047 信息 [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["http-nio-21003"]
+23-Apr-2018 11:00:56.057 信息 [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["ajp-nio-41003"]
+23-Apr-2018 11:00:56.060 信息 [main] org.apache.catalina.startup.Catalina.start Server startup in 78002 ms
+23-Apr-2018 11:00:56.085 信息 [Abandoned connection cleanup thread] org.apache.catalina.loader.WebappClassLoaderBase.checkStateForResourceLoading Illegal access: this web application instance has been stopped already. Could not load []. The following stack trace is thrown for debugging purposes as well as to attempt to terminate the thread which caused the illegal access.
+ java.lang.IllegalStateException: Illegal access: this web application instance has been stopped already. Could not load []. The following stack trace is thrown for debugging purposes as well as to attempt to terminate the thread which caused the illegal access.
+	at org.apache.catalina.loader.WebappClassLoaderBase.checkStateForResourceLoading(WebappClassLoaderBase.java:1305)
+	at org.apache.catalina.loader.WebappClassLoaderBase.getResource(WebappClassLoaderBase.java:986)
+	at com.mysql.jdbc.AbandonedConnectionCleanupThread.checkContextClassLoaders(AbandonedConnectionCleanupThread.java:90)
+	at com.mysql.jdbc.AbandonedConnectionCleanupThread.run(AbandonedConnectionCleanupThread.java:63)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+===================================================================
+2. 日志中没有获得太多有用的信息（直接的错误）
+怀疑是不是服务自动死了（未知原因）
+重新启动服务（./shutdown    ./startup），发现端口号被占用，kill进程之后重新发布，发现还是有相同的错误日志
+于是转头看看git提交日志（代码和配置），发布系统发布情况
+发现代码和配置都是3个月前提交的，最后一次发布成功也是3个月前，说明各个环境的分支斗志一样的，把dev分别在hotfix和t3都发布一下，发现t3可以，hotfix不行。
+经过多种尝试，最后，根据第四行日志
+===================================================================
+23-Apr-2018 11:00:55.626 严重 [localhost-startStop-1]
+org.apache.catalina.core.StandardContext.startInternal One or more listeners failed to start. Full details will be found in the appropriate container log file
+===================================================================
+中的 appropriate container log file，联想到要不要看看其他日志。
+于是在localhost.2018-04-23.log文件中找到真正的错误原因，如下
+===================================================================
+23-Apr-2018 10:59:44.472 信息 [localhost-startStop-1] org.apache.catalina.core.ApplicationContext.log 2 Spring WebApplicationInitializers detected on classpath
+23-Apr-2018 10:59:59.763 信息 [localhost-startStop-1] org.apache.catalina.core.ApplicationContext.log Initializing Spring embedded WebApplicationContext
+23-Apr-2018 11:00:55.619 严重 [localhost-startStop-1] org.apache.catalina.core.StandardContext.listenerStart Error configuring application listener of class com.iqunxing.mapi.Context
+ java.lang.ExceptionInInitializerError
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.lang.reflect.Constructor.newInstance(Constructor.java:423)
+	at java.lang.Class.newInstance(Class.java:442)
+	at org.apache.catalina.core.DefaultInstanceManager.newInstance(DefaultInstanceManager.java:119)
+	at org.apache.catalina.core.StandardContext.listenerStart(StandardContext.java:4667)
+	at org.apache.catalina.core.StandardContext.startInternal(StandardContext.java:5207)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:150)
+	at org.apache.catalina.core.ContainerBase.addChildInternal(ContainerBase.java:752)
+	at org.apache.catalina.core.ContainerBase.addChild(ContainerBase.java:728)
+	at org.apache.catalina.core.StandardHost.addChild(StandardHost.java:734)
+	at org.apache.catalina.startup.HostConfig.deployDirectory(HostConfig.java:1107)
+	at org.apache.catalina.startup.HostConfig$DeployDirectory.run(HostConfig.java:1841)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+Caused by: java.lang.NullPointerException
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Class.java:264)
+	at com.iqunxing.mapi.Context.<clinit>(Context.java:43)
+	... 19 more
+
+23-Apr-2018 11:00:55.624 严重 [localhost-startStop-1] org.apache.catalina.core.StandardContext.listenerStart Skipped installing application listeners due to previous error(s)
+23-Apr-2018 11:00:55.784 信息 [localhost-startStop-1] org.apache.catalina.core.ApplicationContext.log Closing Spring root WebApplicationContext
+===================================================================
+3. 可以看到是项目中的com.iqunxing.mapi.Context这个类下面的第43行报了空指针
+在项目中找到如下代码
+===================================================================
+Properties p = Conf.load("system");
+		Driver driver;
+
+driver = (Driver) Class.forName(p.
+		getProperty("mapi.jdbc.driver")).newInstance();
+===================================================================
+4. 确实有空指针的可能。
+根据这个空指针，怀疑是mapi.jdbc.driver这个key对应的value找不到，所以加载不到相关类，导致Class.forName(p.getProperty("mapi.jdbc.driver"))这个对象是空
+由此推测到去找mapi.jdbc.driver这个key配置在哪里。
+在项目的resources文件夹下找到Conf.properties文件
+内容是
+===================================================================
+conf_dir=/data/conf/
+===================================================================
+5. 对比其他环境，发现在该环境的/data/conf/system.properties文件下缺失一句配置，
+刚好是mapi.jdbc.driver这个key，所以推测可能就是因为缺失这个配置导致的
+===================================================================
+mapi.jdbc.driver=com.iqunxing.fx.sqllog.agent.P6Factory$Driver
+===================================================================
+6. 加上该配置之后，tomcat正常启动
+
