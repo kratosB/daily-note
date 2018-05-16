@@ -1,0 +1,33 @@
+1.
+@RestController 返回json数据
+@Controller 返回页面
+
+
+2.
+@RestController = @Controller + @ResponseBody
+使用@Controller的时候，接口method上加@ResponseBody，就可以返回rest数据
+
+P.S. 如果上面使用@Controller，下面的method没有@ResponseBody，method是void，没有返回值，
+那么调用这个接口的时候，可能会被跳转到一个空的地址，造成404找不到页面的错误
+
+
+
+
+
+网页资料如下
+
+@Controller和@RestController的区别？
+
+官方文档：
+@RestController is a stereotype annotation that combines @ResponseBody and @Controller.
+意思是：
+@RestController注解相当于@ResponseBody ＋ @Controller合在一起的作用。
+
+1)如果只是使用@RestController注解Controller，则Controller中的方法无法返回jsp页面，配置的视图解析器InternalResourceViewResolver不起作用，返回的内容就是Return 里的内容。
+
+例如：本来应该到success.jsp页面的，则其显示success.
+
+
+
+2)如果需要返回到指定页面，则需要用 @Controller配合视图解析器InternalResourceViewResolver才行。
+3)如果需要返回JSON，XML或自定义mediaType内容到页面，则需要在对应的方法上加上@ResponseBody注解。
