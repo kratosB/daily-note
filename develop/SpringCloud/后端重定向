@@ -1,0 +1,27 @@
+package com.api;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import javax.servlet.http.HttpServletResponse;
+
+@Controller
+public class HealthCheckEndpoint {
+
+    @GetMapping(value = "api/redirect")
+    public String redirect(@RequestParam String url) {
+        return "redirect:" + url;
+    }
+
+    @GetMapping(value = "api/sendRedirect")
+    public void sendRedirect(@RequestParam String url,HttpServletResponse hp) {
+        try {
+            hp.sendRedirect(url);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+}
+
+两种重定向的方法

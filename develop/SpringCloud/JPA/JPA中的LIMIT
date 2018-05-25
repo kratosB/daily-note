@@ -1,0 +1,20 @@
+ Specification<MatchPlayer> specification = (root, query, cb) -> {
+            Root<MatchHistory> matchHistoryRoot = query.from(MatchHistory.class);
+            Predicate predicate = cb.and(cb.equal(root.get("matchId"), matchHistoryRoot.get("matchId")),
+                    cb.equal(root.get("accountId"), player.getDotaAccountId()));
+            if (playerWinRateReq.isRanked()) {
+                int ranked = 7;
+                predicate = cb.and(predicate, cb.equal(matchHistoryRoot.get("lobbyType"), ranked));
+            }
+            if (playerWinRateReq.getDuration() != 0) {
+                Long startTimeLong = System.currentTimeMillis() - playerWinRateReq.getDuration() * 86400 * 1000;
+                Date startDate = new Date(startTimeLong);
+                predicate = cb.and(predicate, cb.greaterThan(matchHistoryRoot.get("startTime"), startDate));
+            }
+            query.orderBy(cb.desc(matchHistoryRoot.get("matchId")));
+            return predicate;
+        };
+
+ List<MatchPlayer> matchPlayerList = matchPlayerDao.findAll(specification, new PageRequest(0, playerWinRateReq.getSize()))
+
+ 其实本质上还是靠分页实现的
