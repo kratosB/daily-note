@@ -1,2 +1,2 @@
 # daily-note
-ddddddddddddddddddddddddd
+dddddddddd
