@@ -1,0 +1,77 @@
+111111111111111111111 ===========================================================================
+linux(CentOs6.5)环境变量
+
+一、修改环境变量有以下方法（以增加jdk环境变量为例）
+
+1、只对当前登录用户有作用
+
+vi ~/.bash_profile
+
+export JAVA_HOME=/home/java/jdk1.8
+export JAVA_BIN=$JAVA_HOME/bin
+export PATH=$JAVA_BIN:$PATH
+
+
+2、对所有用户有效
+
+vi /etc/profile
+
+export JAVA_HOME=/home/java/jdk1.8
+export JAVA_BIN=$JAVA_HOME/bin
+export PATH=$JAVA_BIN:$PATH
+
+使环境变量生效 source /etc/profile
+
+二、查看环境变量
+1、查看某一个环境变量（PATH）
+
+     echo $PATH
+
+2、查看所有的环境变量
+
+    env
+
+
+2222222222222222222 ===========================================================================
+
+
+在/etc/profile.d/下有一堆sh脚本，这些脚本就是系统初始化的环境变量来源。
+
+每当系统重启的时候，系统会加载这些文件，进而形成环境变量。那么，我们自然可以在里面增加一个文件，比如java.sh。
+
+#!/bin/bash
+JAVA_HOME=/usr/java/jdk1.8.0_102
+JRE_HOME=$JAVA_HOME/jre
+PATH=$JAVA_HOME/bin:$PATH
+CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+export PATH JAVA_HOME JRE_HOME CLASSPATH
+
+重启即可生效，如果立即生效：
+
+source /etc/profile.d/java.sh
+
+
+
+删除和修改
+说道删除和修改，首先可以知道unset和export的用法。在当前bash中生效。增加一个环境变量：
+
+export PATH='/usr/bin'
+
+清空一个环境变量：
+
+unset PATH
+
+如果持久化的修改必然要对应的文件中，就是上述的文件，这是对所有用户都生效的。
+对单一用户生效（永久的）: 用户目录下的.bash_profile文件中增加变量
+
+vim ~/.bash_profile
+
+
+
+参考资料：https://www.cnblogs.com/woshimrf/p/5886763.html
+
+
+
+
+
+
