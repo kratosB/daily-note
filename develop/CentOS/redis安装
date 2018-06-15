@@ -1,0 +1,83 @@
+1. 安装依赖包
+
+yum install gcc-c++
+
+2. 下载redis稳定版，解压安装包并安装
+
+cd /usr/local
+
+wget http://download.redis.io/releases/redis-4.0.9.tar.gz
+tar xzf redis-4.0.9.tar.gz
+cd redis-4.0.9
+make
+make install
+
+这个时候已经可以启动redis了，但是redis默认配置不能再后台运行
+
+3. 复制配置文件并修改配置
+
+cd /etc/
+mkdir redis
+cd redis
+cp /usr/local/redis-4.0.9/redis.conf /etc/redis/6379.conf (为什么要重命名为6379，是为了方便后面把redis设置为系统服务的时候不用改配置:-D)
+vi 6379.conf
+
+找到  daemonize no
+（默认情况是no，表示不作为守护进程运行，但是我们希望它能在后台运行，就要改成yes）
+
+改成 daemonize yes
+保存退出
+
+=====================
+
+cp /usr/local/redis-4.0.9/utils/redis_init_script /etc/init.d/redis
+vi /etc/init.d/redis
+
+
+EXEC=/usr/redis/redis-4.0.9/src/redis-server             //redis-server：Redis服务的启动程序。
+（这句用默认的/usr/local/bin/redis-server应该也可以）
+CLIEXEC=/usr/redis/redis-4.0.9/src/redis-cli               //redis-cli：Redis命令行操作工具。
+（这句用默认的/usr/local/bin/redis-cli应该也可以）
+
+
+CONF="/etc/redis/${REDISPORT}.conf"      //看到这里明白了吧，配置文件默认读取/etc/redis/下"端口号.conf"这个配置文件，如果自己配置文件取别的名字这里对应改掉，否则启动的时候会报找不到配置文件的错误
+（这句本来就有，不用改）
+
+
+$EXEC $CONF &   //这里要加上&号，意思是把启动redis作为后台进程启动。
+（这句我改了，不知道不改会怎么样）
+
+
+4. 配置完，启动，连接
+
+service redis start  启动
+
+service redis stop  停止
+
+redis-cil   连接
+
+
+5. 密码（本人没试过）
+
+
+如果要密码访问，则对/etc/redis/6379.conf文件修改配置
+
+# requirepass foobared 注释打开，改为
+
+requirepass bestredis       // bestredis为我们设置的redis访问密码
+
+然后重启服务即可
+
+
+开启密码访问后，还需要修改一下redis服务脚本，加入认证的密码信息即可：
+
+vi /etc/init.d/redis
+$CLIEXEC -a "password" -p $REDISPORT shutdown
+
+
+参考文档
+https://blog.csdn.net/freedomwjx/article/details/78602490
+
+https://www.cnblogs.com/renzhicai/p/7773080.html
+
+
