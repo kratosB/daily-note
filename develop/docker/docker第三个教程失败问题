@@ -1,0 +1,10 @@
+docker stack deploy -c docker-compose.yml getstartedlab 之后，有这些service，但是没有在run的container
+
+docker inspect 可以查看错误详情
+
+没看明白是啥错
+
+解决方案是
+docker右键设置，windows container -> linux container
+就可以了
+但是不明白为什么，待续
