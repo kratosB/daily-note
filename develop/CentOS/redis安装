@@ -81,3 +81,14 @@ https://blog.csdn.net/freedomwjx/article/details/78602490
 https://www.cnblogs.com/renzhicai/p/7773080.html
 
 
+
+
+备注
+
+
+  /**
+     * 这边如果用<String,Object>，传入的String就会以"\"dsdsds\""这种形式存在
+     */
+    private RedisTemplate<String, String> redisTemplate;
+
+
