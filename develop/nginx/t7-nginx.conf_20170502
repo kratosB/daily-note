@@ -1,0 +1,1218 @@
+user nginx;
+worker_processes   4;
+
+worker_cpu_affinity 1000 0100 0010 0001;
+
+worker_rlimit_nofile 65535;
+
+error_log   /data/nginx/logs/error.log;
+
+
+
+events {
+  use epoll;
+  worker_connections  65535;
+}
+
+
+http {
+    include       /usr/local/nginx/conf/mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    #log_format  main  [$time_local] "$request" "$status" "$request_body" "$http_HEADER";
+
+    #access_log  /data/nginx/logs/access.log  main;
+    server_names_hash_bucket_size 64;
+    client_max_body_size 100m; 
+    proxy_read_timeout 600s;
+    proxy_send_timeout 600s;
+    # Do not use timeout as if the request processing time is too long and timeout, nginx will resend the request again.
+    #proxy_next_upstream error;
+
+    sendfile       on;
+    tcp_nopush     on;
+
+    #keepalive_timeout  0;
+    #keepalive_timeout  300 300;
+    #keepalive_requests 500;
+    server_tokens off;
+
+    tcp_nodelay on;
+
+    gzip on;
+    gzip_types      text/plain application/xml application/json;
+    gzip_min_length 1000;
+
+    charset utf-8;
+
+    #proxy_temp_path /data/nginx/tmp;
+
+    upstream uba {
+      server uba.dcfservice.com:8080;
+    }
+
+    upstream bankgateway {
+      server t7.dcfservice.com:21031;
+    }
+
+    upstream bbs {
+      server t7.dcfservice.com:21029;
+    }
+
+    
+    upstream webapp {
+      server t7.dcfservice.com:21001;
+    }
+
+    upstream api {
+      server t7.dcfservice.com:21002;
+    }
+    upstream account {
+      server t7.dcfservice.com:21012;
+    }
+
+    upstream user {
+      server t7.dcfservice.com:21006;
+    }
+    upstream cfca {
+      server t7.dcfservice.com:21005;
+    }
+    upstream message {
+      server t7.dcfservice.com:8090;
+    }
+    upstream message2 {
+      server t7.dcfservice.com:21008;
+    }
+    upstream common {
+      server t7.dcfservice.com:21007;
+    }
+    upstream creditline {
+      server t7.dcfservice.com:21015;
+    }
+
+    upstream contract {
+      server t7.dcfservice.com:21014;
+    }
+
+    upstream product {
+      server t7.dcfservice.com:21014;
+    }
+
+    upstream customer {
+      server t7.dcfservice.com:21010;
+    }
+
+    upstream payment {
+      server t7.dcfservice.com:21011;
+    }
+
+
+    upstream loan {
+      server t7.dcfservice.com:21018;
+    }
+
+
+    upstream risk {
+      server t7.dcfservice.com:21016;
+    }
+
+    upstream rawdoc {
+      server t7.dcfservice.com:21017;
+    }
+
+    upstream accounttxn {
+      server t7.dcfservice.com:21030;
+    }
+	
+    upstream settlement {
+      server t7.dcfservice.com:21033;
+    }
+
+    upstream customer_rest {
+      server t7.dcfservice.com:21036;
+    }
+
+    upstream marketing {
+      server t7.dcfservice.com:21023;
+    }
+
+
+    upstream cashier {
+      server t7.dcfservice.com:21035;
+    }
+    upstream site {
+      server t7.dcfservice.com:21040;
+    }
+
+    upstream dirtydata {
+      server t7.dcfservice.com:21037;
+    }
+
+    upstream message-send {
+      server t7.dcfservice.com:21041;
+    }
+    
+    upstream user-rest  {
+      server t7.dcfservice.com:21042;
+    }
+
+    upstream cfca-sign  {
+      server t7.dcfservice.com:21043;
+    }
+    upstream mapi  {
+      server t7.dcfservice.com:21003;
+    }
+    upstream cm  {
+      server t7.dcfservice.com:21045;
+    }
+
+
+ server {
+        listen       80;
+        server_name  t7.rawdoc.api.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/rawdoc.log  main;
+        error_log  /data/nginx/logs/rawdoc_error.log  info;
+
+
+        location / {
+           proxy_pass http://rawdoc;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+
+ server {
+        listen       80;
+        server_name  t7.cashier.api.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/cashier.log  main;
+        error_log  /data/nginx/logs/cashier_error.log  info;
+
+
+        location / {
+           proxy_pass http://cashier;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+
+
+ server {
+        listen       80;
+        server_name  t7.marketing.api.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/marketing.log  main;
+        error_log  /data/nginx/logs/marketing_error.log  info;
+
+
+        location / {
+           proxy_pass http://marketing;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+
+ server {
+        listen       80;
+        server_name  t7.risk.api.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/risk.log  main;
+        error_log  /data/nginx/logs/risk_error.log  info;
+
+
+        location / {
+           proxy_pass http://risk;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+
+ server {
+        listen       80;
+        server_name  t7.loan.api.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/loan.log  main;
+        error_log  /data/nginx/logs/loan_error.log  info;
+
+
+        location / {
+           proxy_pass http://loan;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+
+
+
+
+  server {
+        listen       80;
+        server_name  t7.contract.api.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/contract.log  main;
+        error_log  /data/nginx/logs/contract_error.log  info;
+
+
+        location / {
+           proxy_pass http://contract;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+
+  server {
+        listen       80;
+        server_name  t7.cm.api.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/cm.log  main;
+        error_log  /data/nginx/logs/cm_error.log  info;
+
+
+        location / {
+           proxy_pass http://cm;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+
+
+  server {
+        listen       80;
+        server_name  t7.account.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/account.log  main;
+        error_log  /data/nginx/logs/account_error.log  info;
+
+
+        location / {
+           proxy_pass http://account;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+
+
+
+  server {
+        listen       80;
+        server_name  t7.customer.api.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/customer.log  main;
+        error_log  /data/nginx/logs/customer_error.log  info;
+
+
+        location / {
+           proxy_pass http://customer;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+
+
+
+
+  server {
+        listen       80;
+        server_name  t7.product.api.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/product.log  main;
+        error_log  /data/nginx/logs/product_error.log  info;
+
+
+        location / {
+           proxy_pass http://product;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+
+
+
+
+  server {
+        listen       80;
+        server_name  t7.payment.api.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/payment.log  main;
+        error_log  /data/nginx/logs/payment_error.log  info;
+
+
+        location / {
+           proxy_pass http://payment;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+
+
+
+  server {
+        listen       80;
+        server_name  t7.cfca.api.dcfservice.com; 
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/cfca.log  main;
+        error_log  /data/nginx/logs/cfca_error.log  info;
+
+
+        location / {
+           proxy_pass http://cfca;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+    server {
+        listen       80;
+        server_name  t7.creditline.api.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/creditline.log  main;
+        error_log  /data/nginx/logs/creditline_error.log  info;
+
+
+        location / {
+           proxy_pass http://creditline;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+
+    server {
+        listen       80;
+        server_name  t7.common.api.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/common.log  main;
+        error_log  /data/nginx/logs/common_error.log  info;
+
+
+        location / {
+           proxy_pass http://common;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+
+    server {
+        listen       80;
+        server_name  t7.message.api.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/message.log  main;
+        error_log  /data/nginx/logs/message_error.log  info;
+
+
+        location / {
+           proxy_pass http://message;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+
+
+    server {
+        listen       80;
+        server_name  t7.message2.api.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/message2.log  main;
+        error_log  /data/nginx/logs/message2_error.log  info;
+
+
+        location / {
+           proxy_pass http://message2;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+
+    server {
+        listen       80;
+        server_name  t7.user.api.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/user.log  main;
+        error_log  /data/nginx/logs/user_error.log  info;
+
+
+        location / {
+           proxy_pass http://user;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+
+
+
+
+    server {
+        listen       80;
+        server_name  wt7.dcfservice.com;
+        keepalive_timeout  0;
+	index index.html;
+	access_log  /data/nginx/logs/www_access.log  main;
+
+        location ~* ^/(?![minisites]) {
+            root /data/static_1028;
+            if ( $http_user_agent ~* '(Android|webOS|iPhone|iPod|BlackBerry)') {
+                rewrite  ^/(.*)$  http://t7.dcfservice.com/m/$1 permanent;
+            }
+        }
+        location ^~/v1/ {
+           proxy_pass http://webapp;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+
+
+        location ^~ /minisites/video/ {
+            alias /data/video/minisites/;
+        }
+
+        location ^~ /prototype/ {
+            alias /data/prototype/;
+        }
+
+        location / {
+            root /data/static_1028;
+        }
+
+	rewrite ^/view/(.*)$ http://ht7.dcfservice.com/view/$1 permanent;
+	rewrite ^/views/(.*)$ http://ht7.dcfservice.com/views/$1 permanent;
+	rewrite ^/public/(.*)$ http://ht7.dcfservice.com/public/$1 permanent;
+	rewrite ^/assets/(.*)$ http://ht7.dcfservice.com/assets/$1 permanent;
+	rewrite ^/download/(.*)$ http://ht7.dcfservice.com/download/$1 permanent;
+
+        error_page 404  /html/404.html;
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+
+
+
+   # server {
+   #     listen       443;
+   #     server_name  wt7.dcfservice.com;
+   #     keepalive_timeout  0;
+   #     index index.html;
+   #     access_log  /data/nginx/logs/www_access.log  main;
+   #     ssl on;
+   #     ssl_certificate /usr/local/nginx/conf/server.crt;
+   #     ssl_certificate_key /usr/local/nginx/conf/server.key;
+   #     location / {
+   #        root /data/static_1028;
+   #     }
+   #     error_page 404  /html/404.html;
+   #     error_page   500 502 503 504  /50x.html;
+   #     location = /50x.html {
+   #         root   html;
+   #     }
+
+   # }
+
+
+
+#    server {
+#        listen       80;
+#        server_name  mt7.dcfservice.com;
+#        keepalive_timeout  0;
+#
+#        index index.html;
+#	access_log  /data/nginx/logs/m_access.log  main;
+#	#rewrite /view/13t9/07 /s.htm?13t9,07
+#	#rewrite ^/view/([0-9a-z])/(0-9)$ /s.htm?$1\,$2 last;
+#	rewrite "^/view/(.*)/([0-9]{2})$" /s.htm?$1,$2 permanent;
+#
+#        location ~ (^/repay.html(.*)$) {
+#		root /data/static_1004;
+#        #        if ($request_method = POST) {
+#        #           set $request_method GET;
+#        #        }
+#         	#if ($request_method = POST) {
+#                #	proxy_pass http://sm.dcfservice.com;
+#                #break;
+#        	#}
+#		error_page 405 =200 $1;
+#	}
+#
+#        location / {
+#           root /data/static_1004;
+#        }
+#        error_page   500 502 503 504  /50x.html;
+#        location = /50x.html {
+#            root   html;
+#        }
+#    }
+
+server {
+        listen       80;
+        server_name  t7.dcfservice.com ht7.dcfservice.com at7.dcfservice.com;
+        keepalive_timeout  0;
+
+        access_log  /data/nginx/logs/home_access.log;
+        error_log   /data/nginx/logs/home_error.log;
+
+        location / {
+           rewrite ^/m$ http://$host$uri/ permanent;
+           proxy_hide_header Access-Control-Allow-Origin;
+           add_header Access-Control-Allow-Origin $http_origin;
+           proxy_hide_header Access-Control-Allow-Credentials;
+           add_header Access-Control-Allow-Credentials true;
+           add_header 'Access-Control-Allow-Methods' 'GET,POST,OPTIONS';
+           add_header 'Access-Control-Allow-Headers' 'tk, rm';
+
+           if ($request_method = 'OPTIONS') {
+              return 204;
+           }
+
+           proxy_pass http://webapp;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+      
+        location /m/ {
+           alias /data/static_1013/;
+           index home.html;
+        }
+
+        location /cashier/ {
+           proxy_pass http://cashier;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+
+        location /download {
+           #禁止浏览器直接打开
+           if ($request_filename ~* ^.*?\.(txt|doc|rar|gz|zip|docx|exe|xlsx|ppt|pptx|xls)$){
+              add_header Content-Disposition 'attachment';
+           }
+           # same as fileDir.location in system.properties
+           root /data/iqunxing/;
+        }
+        location /mapi/ {
+           proxy_pass http://mapi;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+
+
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+
+	server {
+        listen       443;
+        server_name  t7.dcfservice.com ht7.dcfservice.com;
+        keepalive_timeout  0;
+
+        access_log  /data/nginx/logs/home_access.log;
+                ssl on;
+        ssl_certificate /usr/local/nginx/conf/server.crt;
+        ssl_certificate_key /usr/local/nginx/conf/server.key;
+
+        location / {
+           proxy_pass http://webapp;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+
+        location /cashier/ {
+           proxy_pass http://cashier;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+
+        location /download {
+           #禁止浏览器直接打开
+           if ($request_filename ~* ^.*?\.(txt|doc|pdf|rar|gz|zip|docx|exe|xlsx|ppt|pptx|xls|jpg|bmp|png)$){
+              add_header Content-Disposition 'attachment';
+           }
+           # same as fileDir.location in system.properties
+           root /data/iqunxing/;
+        }
+
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+
+
+
+
+    server {
+        listen      80;
+        server_name  t7.api.dcfservice.com;
+        #keepalive_timeout  60 60;
+        access_log  /data/nginx/logs/api_access.log  main;
+
+        #large_client_header_buffers 4 16k;
+        #client_max_body_size 300m;
+        #client_body_buffer_size 128k;
+        #proxy_connect_timeout 600;
+        #proxy_read_timeout 600s;
+        #proxy_send_timeout 600;
+        #proxy_buffer_size 64k;
+        #proxy_buffers   4 32k;
+        #proxy_busy_buffers_size 64k;
+        #proxy_temp_file_write_size 64k;
+
+        location / {
+           #if ($http_referer ~* ^http[s]*://([a-z]*).dcfservice.com*) {
+           if ($http_referer ~* ^(http[s]*://[a-zA-Z0-9\.\:]+)) {
+           #if ($http_referer ~* ^(http[s]*://[^/]+)(.*)$) {
+           #if ($http_referer ~* ^(http[s]*://[\w]*[\.]*[\w]*[\.]*[\w]*[:\d]*)(.*)$) {
+                set $refer_host $1;
+           }
+
+           if ($request_method = 'OPTIONS') {
+                add_header 'Access-Control-Allow-Origin' '$refer_host';
+                add_header 'Access-Control-Max-Age' '86400';
+                add_header 'Access-Control-Allow-Credentials' 'true';
+                add_header 'Access-Control-Allow-Methods' 'GET,POST,OPTIONS';
+                add_header 'Access-Control-Allow-Headers' 'tk, rm';
+                return 204;
+           }
+           if ($request_method != 'OPTIONS') {
+                add_header 'Access-Control-Allow-Origin' '$refer_host' 'always';
+                add_header 'Access-Control-Max-Age' '86400' 'always';
+                add_header 'Access-Control-Allow-Credentials' 'true' 'always';
+                add_header 'Access-Control-Expose-Headers' 'tk, rm' 'always';
+           }
+           proxy_pass http://api;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+
+        }
+    }
+
+
+    server {
+        listen      443;
+        server_name  at7.dcfservice.com t7.api.dcfservice.com;
+        #keepalive_timeout  60 60;
+        access_log  /data/nginx/logs/api_access.log  main;
+	                ssl on;
+        ssl_certificate /usr/local/nginx/conf/server.crt;
+        ssl_certificate_key /usr/local/nginx/conf/server.key;
+        #large_client_header_buffers 4 16k;
+        #client_max_body_size 300m;
+        #client_body_buffer_size 128k;
+        #proxy_connect_timeout 600;
+        #proxy_read_timeout 600s;
+        #proxy_send_timeout 600;
+        #proxy_buffer_size 64k;
+        #proxy_buffers   4 32k;
+        #proxy_busy_buffers_size 64k;
+        #proxy_temp_file_write_size 64k;
+
+        location / {
+           #if ($http_referer ~* ^http[s]*://([a-z]*).dcfservice.com*) {
+           if ($http_referer ~* ^(http[s]*://[a-zA-Z0-9\.\:]+)) {
+           #if ($http_referer ~* ^(http[s]*://[^/]+)(.*)$) {
+           #if ($http_referer ~* ^(http[s]*://[\w]*[\.]*[\w]*[\.]*[\w]*[:\d]*)(.*)$) {
+                set $refer_host $1;
+           }
+
+           if ($request_method = 'OPTIONS') {
+                add_header 'Access-Control-Allow-Origin' '$refer_host';
+                add_header 'Access-Control-Max-Age' '86400';
+                add_header 'Access-Control-Allow-Credentials' 'true';
+                add_header 'Access-Control-Allow-Methods' 'GET,POST,OPTIONS';
+                add_header 'Access-Control-Allow-Headers' 'tk, rm';
+                return 204;
+           }
+           if ($request_method != 'OPTIONS') {
+                add_header 'Access-Control-Allow-Origin' '$refer_host' 'always';
+                add_header 'Access-Control-Max-Age' '86400' 'always';
+                add_header 'Access-Control-Allow-Credentials' 'true' 'always';
+                add_header 'Access-Control-Expose-Headers' 'tk, rm' 'always';
+           }
+           proxy_pass http://api;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+
+        }
+    }
+
+     server {
+        listen       80;
+        server_name  t7.bankgateway.dcfservice.com;
+        keepalive_timeout  60;
+        access_log  /data/nginx/logs/bankgatway.log  main;
+        error_log   /data/nginx/logs/bankgatway_error.log;
+
+        location / {
+           proxy_pass http://bankgateway;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+    }
+
+     server {
+        listen       80;
+        server_name  t7.accounttxn.api.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/accounttxn.log  main;
+        error_log  /data/nginx/logs/accounttxn_error.log  info;
+
+        location / {
+           proxy_pass http://accounttxn;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+    }
+	
+	server {
+        listen       80;
+        server_name  t7.settlement.api.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/settlement.log  main;
+        error_log  /data/nginx/logs/settlement_error.log  info;
+
+        location / {
+           proxy_pass http://settlement;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+    }
+
+        server {
+        listen       80;
+        server_name  t7.customer.rest.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/rest.log  main;
+        error_log  /data/nginx/logs/rest_error.log  info;
+
+        location / {
+  	   #if ($http_referer ~* ^http[s]*://([a-z]*).dcfservice.com*) {
+           if ($http_referer ~* ^(http[s]*://[a-zA-Z0-9\.\:]+)) {
+           #if ($http_referer ~* ^(http[s]*://[^/]+)(.*)$) {
+           #if ($http_referer ~* ^(http[s]*://[\w]*[\.]*[\w]*[\.]*[\w]*[:\d]*)(.*)$) {
+                set $refer_host $1;
+           }
+
+           if ($request_method = 'OPTIONS') {
+                add_header 'Access-Control-Allow-Origin' '$refer_host';
+                add_header 'Access-Control-Max-Age' '86400';
+                add_header 'Access-Control-Allow-Credentials' 'true';
+                add_header 'Access-Control-Allow-Methods' 'GET,POST,OPTIONS';
+                add_header 'Access-Control-Allow-Headers' 'X-Requested-With, tk, rm';
+                return 204;
+           }
+           if ($request_method != 'OPTIONS') {
+                add_header 'Access-Control-Allow-Origin' '$refer_host' 'always';
+                add_header 'Access-Control-Max-Age' '86400' 'always';
+                add_header 'Access-Control-Allow-Credentials' 'true' 'always';
+                add_header 'Access-Control-Expose-Headers' 'tk, rm' 'always';
+           }
+           proxy_pass http://customer_rest;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+    }
+
+ server {
+	listen       80;
+        server_name  t7.company.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/settlement.log  main;
+        error_log  /data/nginx/logs/settlement_error.log  info;
+
+	set $tk 805bfda549fc609f94647f4fcd3019dcf823ca243b7b6adf5f6e2f628e7eec9a05a705e09e22ad1467956f2557f95511195a0e47323417499e7ce248f30a9dc97e3c5ce4f1cd0518e2b806a8615c289f193becdfac0fb2bd065fda2c62a20e99db7bf313440722fd87b4bb0390f40830ebf351930f9f86c5204121d0913df2fc;
+
+        location / {
+	   if ($http_referer ~* ^(http[s]*://[a-zA-Z0-9\.\:]+)) {
+           #if ($http_referer ~* ^(http[s]*://[^/]+)(.*)$) {
+           #if ($http_referer ~* ^(http[s]*://[\w]*[\.]*[\w]*[\.]*[\w]*[:\d]*)(.*)$) {
+                set $refer_host $1;
+           }
+
+           if ($request_method = 'OPTIONS') {
+                add_header 'Access-Control-Allow-Origin' '$refer_host';
+                add_header 'Access-Control-Max-Age' '86400';
+                add_header 'Access-Control-Allow-Credentials' 'true';
+                add_header 'Access-Control-Allow-Methods' 'GET,POST,OPTIONS';
+                add_header 'Access-Control-Allow-Headers' 'X-Requested-With, tk, rm';
+                return 204;
+           }
+           if ($request_method != 'OPTIONS') {
+                add_header 'Access-Control-Allow-Origin' '$refer_host' 'always';
+                add_header 'Access-Control-Max-Age' '86400' 'always';
+                add_header 'Access-Control-Allow-Credentials' 'true' 'always';
+                add_header 'Access-Control-Expose-Headers' 'tk, rm' 'always';
+           }
+
+           proxy_pass http://site;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+#	   proxy_set_header   tk	       $tk;
+        }
+	location /v1 {
+	   if ($http_referer ~* ^(http[s]*://[a-zA-Z0-9\.\:]+)) {
+              #if ($http_referer ~* ^(http[s]*://[^/]+)(.*)$) {
+              #if ($http_referer ~* ^(http[s]*://[\w]*[\.]*[\w]*[\.]*[\w]*[:\d]*)(.*)$) {
+                 set $refer_host $1;
+           }
+
+           if ($request_method = 'OPTIONS') {
+                add_header 'Access-Control-Allow-Origin' '$refer_host';
+                add_header 'Access-Control-Max-Age' '86400';
+                add_header 'Access-Control-Allow-Credentials' 'true';
+                add_header 'Access-Control-Allow-Methods' 'GET,POST,OPTIONS';
+                add_header 'Access-Control-Allow-Headers' 'X-Requested-With, tk, rm';
+                return 204;
+           }
+           if ($request_method != 'OPTIONS') {
+                add_header 'Access-Control-Allow-Origin' '$refer_host' 'always';
+                add_header 'Access-Control-Max-Age' '86400' 'always';
+                add_header 'Access-Control-Allow-Credentials' 'true' 'always';
+                add_header 'Access-Control-Expose-Headers' 'tk, rm' 'always';
+           }
+
+  	   proxy_pass http://webapp;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+#	   proxy_set_header   tk               $tk;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+ }
+
+ server {
+        listen       80;
+        server_name  t7.bbs.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/bbs.log  main;
+        error_log  /data/nginx/logs/bbs_error.log  info;
+
+
+        location / {
+           proxy_pass http://bbs;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        location /socket.io/ {
+                proxy_pass http://bbs;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection "upgrade";
+        }
+	
+	location ~* /uploads/.*\.(gif|jpg|jpeg|png|bmp|ico)$ {
+        root /data/iqunxing-bbs;
+        }
+
+
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+
+ server {
+        listen       80;
+        server_name  t7.dirtydata.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/dirtydata.log  main;
+        error_log  /data/nginx/logs/dirtydata_error.log  info;
+
+
+        location / {
+           proxy_pass http://dirtydata;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+	error_page 404 = http://www.iqunxing.com/404.html;
+
+    }
+
+ server {
+        listen       80;
+        server_name  t7.site.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/site.log  main;
+        error_log  /data/nginx/logs/site_error.log  info;
+    
+
+        location / {
+            rewrite ^/(.*) /preview?domainSuffix=$1 break;
+            proxy_pass  http://t7.company.dcfservice.com;
+            proxy_set_header   Host             t7.company.dcfservice.com;
+            proxy_set_header   X-Real-IP        $remote_addr;
+            proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+	}
+
+	location /css {
+           proxy_pass http://site;
+           proxy_set_header   Host             t7.company.dcfservice.com;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+	}
+	location /js {
+           proxy_pass http://site;
+           proxy_set_header   Host             t7.company.dcfservice.com;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+	}
+	location /html {
+           proxy_pass http://site;
+           proxy_set_header   Host             t7.company.dcfservice.com;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+	}
+	location /flash {
+           proxy_pass http://site;
+           proxy_set_header   Host             t7.company.dcfservice.com;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+	}
+	location /fonts {
+           proxy_pass http://site;
+           proxy_set_header   Host             t7.company.dcfservice.com;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+	}
+	location /imgs {
+           proxy_pass http://site;
+           proxy_set_header   Host             t7.company.dcfservice.com;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+	}
+	location /favicon.ico {
+           proxy_pass http://site;
+           proxy_set_header   Host             t7.company.dcfservice.com;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+	}
+
+    }
+
+    server {
+        listen       80;
+        server_name  t7.message.send.api.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/message-send.log  main;
+        error_log  /data/nginx/logs/message-send_error.log  info;
+
+
+        location / {
+           proxy_pass http://message-send;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+    }
+
+    server {
+        listen       80;
+        server_name  t7.dashboard.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/dashboard.log  main;
+        error_log  /data/nginx/logs/dashboard_error.log  info;
+
+
+        location / {
+           proxy_pass http://localhost:29016;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+    
+	}
+   
+
+	server {
+        listen       80;
+        server_name  t7.user.rest.api.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/user-rest.log  main;
+        error_log  /data/nginx/logs/user-rest_error.log  info;
+
+
+        location / {
+           proxy_pass http://user-rest;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+	}
+
+	server {
+        listen       80;
+        server_name  t7.cfca.sign.api.dcfservice.com;
+        keepalive_timeout  0;
+        access_log  /data/nginx/logs/cfca-sign.log  main;
+        error_log  /data/nginx/logs/cfca-sign_error.log  info;
+
+
+        location / {
+           proxy_pass http://cfca-sign;
+           proxy_set_header   Host             $host;
+           proxy_set_header   X-Real-IP        $remote_addr;
+           proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+	}
+}
+
