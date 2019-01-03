@@ -1,0 +1,18 @@
+1. 安装
+
+拉取镜像文件
+docker pull rabbitmq
+
+部署
+docker run -d --name rabbitmq -p 5672:5672  -p 15672:15672 rabbitmq
+
+进入docker的命令控制台
+docker exec -it 7ecff31eb815 /bin/bash
+
+在docker的控制台下执行下面命令来启动rabbitmq的管理控制台的插件
+rabbitmq-plugins enable rabbitmq_management
+
+=============================================================================================
+
+
+
