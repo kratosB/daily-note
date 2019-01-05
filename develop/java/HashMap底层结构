@@ -1,0 +1,13 @@
+https://www.jianshu.com/p/518edb2d2d18
+
+https://www.cnblogs.com/dassmeta/p/5338955.html
+
+注意事项
+
+1. //当key为null，调用putForNullKey方法，保存null与table第一个位置中，这是HashMap允许为null的原因
+
+2. 为什么HashMap的容量是2的幂，因为不是2的幂，取与之后的结果，分布不均匀
+
+3. key和value被当作一个整体Entry（实际上就是key，value只是附带）来存取
+
+4. 底层是数组+链表结构

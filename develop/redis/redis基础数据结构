@@ -1,0 +1,124 @@
+（1）string（字符串）
+Redis 的字符串是动态字符串，是可以修改的字符串，内部结构实现上类似于 Java 的 ArrayList，
+采用预分配冗余空间的方式来减少内存的频繁分配，如图中所示，内部为当前字符串实际分配的空间 capacity
+一般要高于实际字符串长度 len。当字符串长度小于 1M 时，扩容都是加倍现有的空间，
+如果超过 1M，扩容时一次只会多扩 1M 的空间。需要注意的是字符串最大长度为 512M。
+
+set/get
+set key1 value
+get key1 value
+exists key1
+del key1
+批量
+mset key1 value1 key2 value 2 key3 value3
+mget key1 key2 key3
+过期
+expire key1 5 # 5s后过期
+setex key1 5 value # set+expire
+
+计数
+如果 value 值是一个整数，还可以对它进行自增操作。自增是有范围的，
+它的范围是 signed long 的最大最小值，超过了这个值，Redis 会报错。
+
+set age 30 # 设置age是30
+incr age # 返回age是31
+incrby age 5 # 返回age是36
+incrby age -5 # 返回age是31
+
+字符串是由多个字节组成，每个字节又是由 8 个 bit 组成，如此便可以将一个字符串看成很多 bit 的组合，
+这便是 bitmap「位图」数据结构，位图的具体使用会放到后面的章节来讲。
+
+=================================================================================================
+（2）list（列表）
+Redis 的列表相当于 Java 语言里面的 LinkedList，注意它是链表而不是数组。
+这意味着 list 的插入和删除操作非常快，时间复杂度为 O(1)，但是索引定位很慢，时间复杂度为 O(n)，
+这点让人非常意外。当列表弹出了最后一个元素之后，该数据结构自动被删除，内存被回收。
+
+Redis 的列表结构常用来做异步队列使用。
+将需要延后处理的任务结构体序列化成字符串塞进 Redis 的列表，另一个线程从这个列表中轮询数据进行处理。
+
+rpush key1 v1 v2 v3 # 右边进
+lpush key1 v0 # 左边进
+lpop key1 # 左边出，v0
+rpop key1 # 右边出，v3
+
+lindex 相当于 Java 链表的get(int index)方法，它需要对链表进行遍历，性能随着参数index增大而变差。
+lrange 输出这个范围内所有的值
+
+lindex key1 0 # v0  O(n)复杂度，慎用
+lindex key1 3 # v3  O(n)复杂度，慎用
+lrange key1 0 -1 # v0,v1,v2,v3  -1代表倒数第一个元素，-2代表倒数第二个  O(n)复杂度，慎用
+
+ltrim 和字面上的含义不太一样，个人觉得它叫 lretain(保留) 更合适一些，
+因为 ltrim 跟的两个参数start_index和end_index定义了一个区间，在这个区间内的值，
+ltrim 要保留，区间之外统统砍掉。
+
+我们可以通过ltrim来实现一个定长的链表，这一点非常有用。index 可以为负数，
+index=-1表示倒数第一个元素，同样index=-2表示倒数第二个元素。
+
+ltrim key1 1 -1 # 删掉了index=0的v0，保留了1到-1之间的这些元素
+ltrim key1 1 0 # 删除整个列表
+
+如果再深入一点，你会发现 Redis 底层存储的还不是一个简单的 linkedlist，
+而是称之为快速链表 quicklist 的一个结构。
+
+首先在列表元素较少的情况下会使用一块连续的内存存储，这个结构是 ziplist，也即是压缩列表。
+它将所有的元素紧挨着一起存储，分配的是一块连续的内存。当数据量比较多的时候才会改成 quicklist。
+因为普通的链表需要的附加指针空间太大，会比较浪费空间，而且会加重内存的碎片化。
+比如这个列表里存的只是 int 类型的数据，结构上还需要两个额外的指针 prev 和 next 。
+所以 Redis 将链表和 ziplist 结合起来组成了 quicklist。也就是将多个 ziplist 使用双向指针串起来使用。
+这样既满足了快速的插入删除性能，又不会出现太大的空间冗余
+
+=================================================================================================
+（3）hash（哈希字典）
+Redis 的字典相当于 Java 语言里面的 HashMap，它是无序字典。内部实现结构上同 Java 的 HashMap 也是一致的，
+同样的数组 + 链表二维结构。第一维 hash 的数组位置碰撞时，就会将碰撞的元素使用链表串接起来。
+
+不同的是，Redis 的字典的值只能是字符串，另外它们 rehash 的方式不一样，因为 Java 的 HashMap 在字典很大时，
+rehash 是个耗时的操作，需要一次性全部 rehash。Redis 为了高性能，不能堵塞服务，所以采用了渐进式 rehash 策略
+
+hash 结构也可以用来存储用户信息，不同于字符串一次性需要全部序列化整个对象，
+hash 可以对用户结构中的每个字段单独存储。这样当我们需要获取用户信息时可以进行部分获取。
+而以整个字符串的形式去保存用户信息的话就只能一次性全部读取，这样就会比较浪费网络流量。
+
+hash 也有缺点，hash 结构的存储消耗要高于单个字符串，到底该使用 hash 还是字符串，需要根据实际情况再三权衡。
+
+hset keys key1 value1 # hash中添加keys这个map，添加key=key1，value=value1的键值对
+hmset keys key1 value1 key2 value2 key3 value3 # 批量
+hgetall keys # 取出全部
+hlen keys # length
+hget keys key1 # 取出其中一个key
+hset keys key1 newValue1 # 更新
+
+同字符串对象一样，hash 结构中的单个子 key 也可以进行计数，它对应的指令是 hincrby，和 incr使用基本一样。
+
+=================================================================================================
+（4）组（集合）
+Redis 的集合相当于 Java 语言里面的 HashSet，它内部的键值对是无序的唯一的。
+它的内部实现相当于一个特殊的字典（特殊的HashMap），字典中所有的 value 都是一个值NULL
+
+sadd key value1 # 向key这个set中添加value1
+sadd key value1 # 向key这个set中添加value1，因为已经存在，所以添加失败，返回0
+sadd key value2 # 添加value2，因为不存在，所以成功
+smembers key # 拿这个set中所有的value，因为set是无序的，所以顺序不是插入的顺序
+sismember key value1 # 查看set中是否有这个member存在
+scard key # set的size
+spop key # 弹出一个value（应该跟members的顺序一样是无序的）
+
+=================================================================================================
+（5）zset（sorted set有序集合）
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
