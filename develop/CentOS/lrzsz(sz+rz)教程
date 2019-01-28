@@ -1,0 +1,16 @@
+### 1. 首先安装lrzsz
+
+yum -y install lrzsz
+
+### 2. 上传文件，执行命令rz，会跳出文件选择窗口，选择好文件，点击确认即可
+
+rz
+
+### 3. 三、下载文件，执行命令sz
+
+sz
+
+---
+
+>[资料地址](https://blog.csdn.net/hanchao_h/article/details/79529489)  
+[lrzsz官网入口](http://freecode.com/projects/lrzsz/)
