@@ -12,13 +12,13 @@ HashMap也是我们使用非常多的Collection，它是基于哈希表的 Map �
 
 假定最后计算出的index是2，那么结果如下：
 
-![图1](https://upload-images.jianshu.io/upload_images/10601062-a6156ca7e0fdab93.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/804/format/webp)
+![图1](https://upload-images.jianshu.io/upload_images/10601062-a6156ca7e0fdab93.png)
 
 但是，因为 HashMap 的长度是有限的，当插入的 Entry 越来越多时，再完美的 Hash 函数也难免会出现 index 冲突的情况。
 
 比如下面这样：
 
-![图2](https://upload-images.jianshu.io/upload_images/10601062-1fa5023db1576e3a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/808/format/webp)
+![图2](https://upload-images.jianshu.io/upload_images/10601062-1fa5023db1576e3a.png)
 
 这时候该怎么办呢？我们可以利用链表来解决。
 
@@ -26,7 +26,7 @@ HashMap 数组的每一个元素不止是一个 Entry 对象，也是一个链�
 
 每一个 Entry 对象通过 Next 指针指向它的下一个 Entry 节点。当新来的Entry映射到冲突的数组位置时，只需要插入到对应的链表即可：
 
-![图3](https://upload-images.jianshu.io/upload_images/10601062-d46ffddf7d2f0135.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/808/format/webp)
+![图3](https://upload-images.jianshu.io/upload_images/10601062-d46ffddf7d2f0135.png)
 
 需要注意的是，新来的Entry节点插入链表时，使用的是“头插法”。至于为什么不插入链表尾部，后面会有解释。
 
@@ -38,7 +38,7 @@ HashMap 数组的每一个元素不止是一个 Entry 对象，也是一个链�
 
 由于刚才所说的 Hash 冲突，同一个位置有可能匹配到多个Entry，这时候就需要顺着对应链表的头节点，一个一个向下来查找。假设我们要查找的Key是 “apple”：
 
-![图4](https://upload-images.jianshu.io/upload_images/10601062-9a9e0aa9f86e5a32.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/815/format/webp)
+![图4](https://upload-images.jianshu.io/upload_images/10601062-9a9e0aa9f86e5a32.png)
 
 第一步，我们查看的是头节点 Entry6，Entry6 的 Key是banana，显然不是我们要找的结果。
 
