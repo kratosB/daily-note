@@ -124,4 +124,5 @@ The following exceptional conditions are associated with native method stacks:
 
 
 
-> [参考翻译资料](https://blog.csdn.net/cdl2008sky/article/details/8128208)
+> [参考翻译资料1](https://blog.csdn.net/cdl2008sky/article/details/8128208)
+> [参考翻译资料2](https://book.douban.com/annotation/31406463/)
