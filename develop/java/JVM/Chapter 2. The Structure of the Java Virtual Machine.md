@@ -77,7 +77,7 @@ In the First Edition of The Java® Virtual Machine Specification, the Java Virtu
 
 This specification permits Java Virtual Machine stacks either to be of a fixed size or to dynamically expand and contract as required by the computation. If the Java Virtual Machine stacks are of a fixed size, the size of each Java Virtual Machine stack may be chosen independently when that stack is created.
 
-此规范允许Java虚拟机堆栈具有固定大小或根据计算的需要动态扩展和收缩。 如果JVM栈具有固定大小，则可以在创建该栈时独立选择每个JVM栈的大小。
+此规范允许Java虚拟机栈具有固定大小或根据计算的需要动态扩展和收缩。 如果JVM栈具有固定大小，则可以在创建该栈时独立选择每个JVM栈的大小。
 
 A Java Virtual Machine implementation may provide the programmer or the user control over the initial size of Java Virtual Machine stacks, as well as, in the case of dynamically expanding or contracting Java Virtual Machine stacks, control over the maximum and minimum sizes.
 
@@ -138,28 +138,41 @@ The following exceptional condition is associated with the method area:
 
 A run-time constant pool is a per-class or per-interface run-time representation of the constant_pool table in a class file (§4.4). It contains several kinds of constants, ranging from numeric literals known at compile-time to method and field references that must be resolved at run-time. The run-time constant pool serves a function similar to that of a symbol table for a conventional programming language, although it contains a wider range of data than a typical symbol table.
 
-运行时常量池是一种每个类，每个接口的运行
+运行时常量池是类文件中常量池表中的一种每个类，每种接口的运行时标识（没懂这句话）。它包含了许多不同类型的常量，编译时可知的数值范围，以及运行时必须解析的方法/字段的引用。运行时常量池提供了一个类似于传统语言中的符号表的功能，不过它包含比典型符号表更宽范围的数据。
 
 Each run-time constant pool is allocated from the Java Virtual Machine's method area (§2.5.4). The run-time constant pool for a class or interface is constructed when the class or interface is created (§5.3) by the Java Virtual Machine.
 
+每个运行时常量池都是从方法区中被分配的（常量池在方法区里）。在一个类或者一个接口被JVM创建的时候，常量池同步被创建。
+
 The following exceptional condition is associated with the construction of the run-time constant pool for a class or interface:
 
-* When creating a class or interface, if the construction of the run-time constant pool requires more memory than can be made available in the method area of the Java Virtual Machine, the Java Virtual Machine throws an OutOfMemoryError.
+以下异常状况与为类或方法构造运行时常量池有关：
 
-See §5 (Loading, Linking, and Initializing) for information about the construction of the run-time constant pool.
+* When creating a class or interface, if the construction of the run-time constant pool requires more memory than can be made available in the method area of the Java Virtual Machine, the Java Virtual Machine throws an OutOfMemoryError.  
+在创建一个类或一个接口的时候，如果构造运行时常量池需要的内存比JVM中的方法区能提供的内存更多，则Java虚拟机会抛出OutOfMemoryError。
 
 ##### 2.5.6. Native Method Stacks
 
 An implementation of the Java Virtual Machine may use conventional stacks, colloquially called "C stacks," to support native methods (methods written in a language other than the Java programming language). Native method stacks may also be used by the implementation of an interpreter for the Java Virtual Machine's instruction set in a language such as C. Java Virtual Machine implementations that cannot load native methods and that do not themselves rely on conventional stacks need not supply native method stacks. If supplied, native method stacks are typically allocated per thread when each thread is created.
 
+Java虚拟机的实现可以使用传统的栈，俗称“C栈”，用以支持本地方法（用Java编程语言以外的语言编写的方法）。本地方法栈也可能使用被C语言实现了的JVM指令解释器。如果没有本地方法栈的支持，JVM不能加载本地方法和常规栈。如果支持，则通常在创建每个线程时为每个线程分配本机方法堆栈。
+
 This specification permits native method stacks either to be of a fixed size or to dynamically expand and contract as required by the computation. If the native method stacks are of a fixed size, the size of each native method stack may be chosen independently when that stack is created.
+
+此规范允许本地方法区具有固定大小或根据计算的需要动态扩展和收缩。如果本机方法堆栈具有固定大小，则可以在创建该堆栈时独立地选择每个本机方法堆栈的大小。
 
 A Java Virtual Machine implementation may provide the programmer or the user control over the initial size of the native method stacks, as well as, in the case of varying-size native method stacks, control over the maximum and minimum method stack sizes.
 
+Java虚拟机实现可以为程序员或用户提供对本地方法栈的初始大小的控制。同时，在可以动态扩展或收缩本地方法栈的情况下，Java虚拟机也提供了最大值和最小值的控制。
+
 The following exceptional conditions are associated with native method stacks:
 
-* If the computation in a thread requires a larger native method stack than is permitted, the Java Virtual Machine throws a StackOverflowError.
-* If native method stacks can be dynamically expanded and native method stack expansion is attempted but insufficient memory can be made available, or if insufficient memory can be made available to create the initial native method stack for a new thread, the Java Virtual Machine throws an OutOfMemoryError.
+以下异常状况与本地方法栈有关：
+
+* If the computation in a thread requires a larger native method stack than is permitted, the Java Virtual Machine throws a StackOverflowError.  
+若线程执行过程中本地方法栈大小超出虚拟机栈限制，则会抛出 StackOverflowError。
+* If native method stacks can be dynamically expanded and native method stack expansion is attempted but insufficient memory can be made available, or if insufficient memory can be made available to create the initial native method stack for a new thread, the Java Virtual Machine throws an OutOfMemoryError.  
+若本地方法栈允许动态扩展，但在尝试扩展时内存不足，或者在为一个新线程初始化新的虚拟机栈时申请不到足够的内存，则会抛出 OutOfMemoryError。
 
 
 
