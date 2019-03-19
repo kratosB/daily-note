@@ -74,9 +74,10 @@ Java运行时的内存划分图及设置参数
 
 
 
-
 ## 参考资料
 
+>[Inside the Java Virtual Machine](https://www.artima.com/insidejvm/ed2/index.html "推荐")
+>
 > [java运行时内存分配详解](https://www.cnblogs.com/hewenwu/p/3662529.html)
 > 
 > [Java 运行时的内存划分](https://crossoverjie.top/JCSprout/#/jvm/MemoryAllocation)
