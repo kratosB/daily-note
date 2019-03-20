@@ -103,11 +103,83 @@ In Figure 5-3, as in all graphical depictions of the Java stack in this book, th
 ---
 ### [Data Types](https://www.artima.com/insidejvm/ed2/jvm3.html)
 
----
-### [The Lifetime of a Java Virtual Machine](https://www.artima.com/insidejvm/ed2/jvm.html)
+The Java virtual machine computes by performing operations on certain types of data. Both the data types and operations are strictly defined by the Java virtual machine specification. The data types can be divided into a set of primitive types and a reference type. Variables of the primitive types hold primitive values, and variables of the reference type hold reference values. Reference values refer to objects, but are not objects themselves. Primitive values, by contrast, do not refer to anything. They are the actual data themselves. You can see a graphical depiction of the Java virtual machine's families of data types in Figure 5-4.
+>Java虚拟机通过对某些类型的数据执行操作来计算。数据类型和操作都由Java虚拟机规范严格定义。数据类型被分为基本类型和引用类型。基本类型不指向其他东西，引用类型指向其他对象。
+
+![Data types of the Java virtual machine](https://www.artima.com/insidejvm/ed2/images/fig5-4.gif "Data types of the Java virtual machine")
+
+**Figure 5-4. Data types of the Java virtual machine.**
+
+All the primitive types of the Java programming language are primitive types of the Java virtual machine. Although boolean qualifies as a primitive type of the Java virtual machine, the instruction set has very limited support for it. When a compiler translates Java source code into bytecodes, it uses ints or bytes to represent booleans. In the Java virtual machine, false is represented by integer zero and true by any non-zero integer. Operations involving boolean values use ints. Arrays of boolean are accessed as arrays of byte, though they may be represented on the heap as arrays of byte or as bit fields.
+>Java语言的基本类型和Java虚拟机的基本类型是一样的。不过boolean虽然是基本类型，但是指令集对它的支持很有限。当编译器把Java代码翻译成字节码的时候，boolean汇呗表示成二进制数或int数。在Java虚拟机中，false就是int0，true是非0的int。
+
+The primitive types of the Java programming language other than boolean form the numeric types of the Java virtual machine. The numeric types are divided between the integral types: byte, short, int, long, and char, and the floating- point types: float and double. As with the Java programming language, the primitive types of the Java virtual machine have the same range everywhere. A long in the Java virtual machine always acts like a 64-bit signed twos complement number, independent of the underlying host platform.
+>除了boolean之外的数字型基本类型，分为整数类（int）: byte, short, int, long, char和浮点类（flout）: float, double。
+
+The Java virtual machine works with one other primitive type that is unavailable to the Java programmer: the returnAddress type. This primitive type is used to implement finally clauses of Java programs. The use of the returnAddress type is described in detail in Chapter 18, "Finally Clauses."
+>Java虚拟机中还由一种基本类型，是returnAddress，这种类型是用来实现finally条款的，在第十八章`Finally Clauses`中会介绍到。（电子版问当没有这个第十八章，只有目录没有内容）
+
+The reference type of the Java virtual machine is cleverly named reference. Values of type reference come in three flavors: the class type, the interface type, and the array type. All three types have values that are references to dynamically created objects. The class type's values are references to class instances. The array type's values are references to arrays, which are full-fledged objects in the Java virtual machine. The interface type's values are references to class instances that implement an interface. One other reference value is the null value, which indicates the reference variable doesn't refer to any object.
+>Java虚拟机的引用类型巧妙地命名为引用。引用类型的值有三种类型：类引用，接口引用，数组引用。数组类型的值是对数组的引用，数组是Java虚拟机中的完整对象。接口类型的值是实现这个接口的类的实例。另一个参考值是空值，表示引用变量不引用任何对象。
+
+The Java virtual machine specification defines the range of values for each of the data types, but does not define their sizes. The number of bits used to store each data type value is a decision of the designers of individual implementations. The ranges of the Java virtual machines data type's are shown in Table 5-1. More information on the floating point ranges is given in Chapter 14, "Floating Point Arithmetic."
+>Java虚拟机规范定义了各种数据类型的值的范围，但是没定义大小。具体大小取决于不同虚拟机得实现者。下面的表格5-1就是各种数据类型的范围，具体信息可以在第十四章`Floating Point Arithmetic`中找到（电子版问当没有这个第十八章，只有目录没有内容）
+
+|Type|Range|
+| ------ | ------ |
+| byte | 8-bit signed two's complement integer (-27 to 27 - 1, inclusive) |
+| short | 16-bit signed two's complement integer (-215 to 215 - 1, inclusive) |
+| int | 32-bit signed two's complement integer (-231 to 231 - 1, inclusive) |
+| long | 64-bit signed two's complement integer (-263 to 263 - 1, inclusive) |
+| char | 16-bit unsigned Unicode character (0 to 216 - 1, inclusive) |
+| float | 32-bit IEEE 754 single-precision float |
+| double | 64-bit IEEE 754 double-precision float |
+| returnAddress | address of an opcode within the same method |
+| reference | reference to an object on the heap, or null |
 
 ---
-### [The Lifetime of a Java Virtual Machine](https://www.artima.com/insidejvm/ed2/jvm.html)
+### [Word Size](https://www.artima.com/insidejvm/ed2/jvm3.html)
+
+The basic unit of size for data values in the Java virtual machine is the word--a fixed size chosen by the designer of each Java virtual machine implementation. The word size must be large enough to hold a value of type byte, short, int, char, float, returnAddress, or reference. Two words must be large enough to hold a value of type long or double. An implementation designer must therefore choose a word size that is at least 32 bits, but otherwise can pick whatever word size will yield the most efficient implementation. The word size is often chosen to be the size of a native pointer on the host platform.
+>Java虚拟机的数据的基本大小单位是word，一个由虚拟机实现的开发者自定义的固定的大小。一个word的大小必须要足够放下 byte, short, int, char, float, returnAddress, 或者 reference。两个word的大小必须要足够放下 long 或者 double。所以开发者需要选区最小32bits的大小作为word的大小，通常word的大小取决于本地指针大小。
+
+The specification of many of the Java virtual machine's runtime data areas are based upon this abstract concept of a word. For example, two sections of a Java stack frame--the local variables and operand stack-- are defined in terms of words. These areas can contain values of any of the virtual machine's data types. When placed into the local variables or operand stack, a value occupies either one or two words.
+
+As they run, Java programs cannot determine the word size of their host virtual machine implementation. The word size does not affect the behavior of a program. It is only an internal attribute of a virtual machine implementation.
+
+---
+### [The Class Loader Subsystem](https://www.artima.com/insidejvm/ed2/jvm4.html)
+
+The part of a Java virtual machine implementation that takes care of finding and loading types is the class loader subsystem. Chapter 1, "Introduction to Java's Architecture," gives an overview of this subsystem. Chapter 3, "Security," shows how the subsystem fits into Java's security model. This chapter describes the class loader subsystem in more detail and show how it relates to the other components of the virtual machine's internal architecture.
+>这一章更详细地描述了类加载器子系统，并展示了它与虚拟机内部体系结构的其他组件的关系。
+
+As mentioned in Chapter 1, the Java virtual machine contains two kinds of class loaders: a bootstrap class loader and user-defined class loaders. The bootstrap class loader is a part of the virtual machine implementation, and user-defined class loaders are part of the running Java application. Classes loaded by different class loaders are placed into separate name spaces inside the Java virtual machine.
+>在第一章中介绍过，Java虚拟机包含两种类加载器，引导类加载器和用户定义的类加载器。引导类加载器是Java虚拟机地一部分，用户定义类加载器是运行地Java应用地一部分。由不同类加载器加载的类被放置在Java虚拟机内的单独名称空间中。
+
+The class loader subsystem involves many other parts of the Java virtual machine and several classes from the java.lang library. For example, user-defined class loaders are regular Java objects whose class descends from java.lang.ClassLoader. The methods of class ClassLoader allow Java applications to access the virtual machine's class loading machinery. Also, for every type a Java virtual machine loads, it creates an instance of class java.lang.Class to represent that type. Like all objects, user-defined class loaders and instances of class Class reside on the heap. Data for loaded types resides in the method area.
+>类加载器子系统涉及Java虚拟机的许多其他部分以及java.lang库中的几个类。例如，用户定义地类加载器是普通Java对象，是java.lang.ClassLoader地后代。ClassLoader的方法允许Java应用访问虚拟机的类加载机制。此外，对于Java虚拟机加载的每种类型，它都会创建类java.lang.Class的实例来表示该类型。与所有对象一样，用户定义的类加载器和类Class的实例放在堆上。加载类型的代码数据放在方法区域中。
+
+#### Loading, Linking and Initialization
+
+The class loader subsystem is responsible for more than just locating and importing the binary data for classes. It must also verify the correctness of imported classes, allocate and initialize memory for class variables, and assist in the resolution of symbolic references. These activities are performed in a strict order:
+
+1. Loading: finding and importing the binary data for a type
+2. Linking: performing verification, preparation, and (optionally) resolution
+    1. Verification: ensuring the correctness of the imported type
+    2. Preparation: allocating memory for class variables and initializing the memory to default values
+    3. Resolution: transforming symbolic references from the type into direct references.
+3. Initialization: invoking Java code that initializes class variables to their proper starting values.
+
+The details of these processes are given Chapter 7, "The Lifetime of a Type."
+
+#### The Bootstrap Class Loader
+#### User-Defined Class Loaders
+#### Name Spaces
+
+
+
+
+
 
 ---
 ### [The Lifetime of a Java Virtual Machine](https://www.artima.com/insidejvm/ed2/jvm.html)
