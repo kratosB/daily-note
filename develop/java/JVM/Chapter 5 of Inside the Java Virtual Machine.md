@@ -60,7 +60,7 @@ Figure 5-1 shows a block diagram of the Java virtual machine that includes the m
 
 ![The internal architecture of the Java virtual machine](https://www.artima.com/insidejvm/ed2/images/fig5-1.gif "The internal architecture of the Java virtual machine")
 
-**<center>Figure 5-1. The internal architecture of the Java virtual machine.</center>**
+<center>Figure 5-1. The internal architecture of the Java virtual machine.</center>
 
 
 
