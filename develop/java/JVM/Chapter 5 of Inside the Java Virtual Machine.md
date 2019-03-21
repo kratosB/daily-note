@@ -72,7 +72,7 @@ Different implementations of the virtual machine can have very different memory 
 Some runtime data areas are shared among all of an application's threads and others are unique to individual threads. Each instance of the Java virtual machine has one method area and one heap. These areas are shared by all threads running inside the virtual machine. When the virtual machine loads a class file, it parses information about a type from the binary data contained in the class file. It places this type information into the method area. As the program runs, the virtual machine places all objects the program instantiates onto the heap. See Figure 5-2 for a graphical depiction of these memory areas.
 >有些运行时数据区被所有线程共享，有一些则只属于每个线程自己。每个Java虚拟机都会有一个方法区和一个堆。这些数据区被所有该虚拟机内运行的线程共享。
 >
->当虚拟机加载一个class文件时，它会解析包含在这个class文件中的二进制数据的类型信息。它将此类型信息放入方法区域。 当程序运行时，虚拟机将程序实例化的所有对象放置到堆上。
+>当虚拟机加载一个class文件时，它会解析包含在这个class文件中的二进制数据的类型（类或接口）信息。它将此类型（类或接口）信息放入方法区域。 当程序运行时，虚拟机将程序实例化的所有对象放置到堆上。
 
 ![Runtime data areas shared among all threads](https://www.artima.com/insidejvm/ed2/images/fig5-2.gif "Runtime data areas shared among all threads")
 
@@ -157,30 +157,209 @@ As mentioned in Chapter 1, the Java virtual machine contains two kinds of class 
 >在第一章中介绍过，Java虚拟机包含两种类加载器，引导类加载器和用户定义的类加载器。引导类加载器是Java虚拟机地一部分，用户定义类加载器是运行地Java应用地一部分。由不同类加载器加载的类被放置在Java虚拟机内的单独名称空间中。
 
 The class loader subsystem involves many other parts of the Java virtual machine and several classes from the java.lang library. For example, user-defined class loaders are regular Java objects whose class descends from java.lang.ClassLoader. The methods of class ClassLoader allow Java applications to access the virtual machine's class loading machinery. Also, for every type a Java virtual machine loads, it creates an instance of class java.lang.Class to represent that type. Like all objects, user-defined class loaders and instances of class Class reside on the heap. Data for loaded types resides in the method area.
->类加载器子系统涉及Java虚拟机的许多其他部分以及java.lang库中的几个类。例如，用户定义地类加载器是普通Java对象，是java.lang.ClassLoader地后代。ClassLoader的方法允许Java应用访问虚拟机的类加载机制。此外，对于Java虚拟机加载的每种类型，它都会创建类java.lang.Class的实例来表示该类型。与所有对象一样，用户定义的类加载器和类Class的实例放在堆上。加载类型的代码数据放在方法区域中。
+>类加载器子系统涉及Java虚拟机的许多其他部分以及java.lang库中的几个类。例如，用户定义地类加载器是普通Java对象，是java.lang.ClassLoader地后代。ClassLoader的方法允许Java应用访问虚拟机的类加载机制。此外，对于Java虚拟机加载的每种类型（类或接口），它都会创建类java.lang.Class的实例来表示该类型（类或接口）。与所有对象一样，用户定义的类加载器和类Class的实例放在堆上。加载类型（类或接口）的代码数据放在方法区域中。
 
 #### Loading, Linking and Initialization
 
 The class loader subsystem is responsible for more than just locating and importing the binary data for classes. It must also verify the correctness of imported classes, allocate and initialize memory for class variables, and assist in the resolution of symbolic references. These activities are performed in a strict order:
+>这个类加载子系统不但负责定位并输入类的二进制数据，而且验证输入的类的正确性，为类的变量初始化并分配内存，并在解决方案上协助符号引用。这些活动按严格的顺序执行：
 
 1. Loading: finding and importing the binary data for a type
+>加载：查找并导入类型（类或接口）的二进制数据
 2. Linking: performing verification, preparation, and (optionally) resolution
     1. Verification: ensuring the correctness of the imported type
     2. Preparation: allocating memory for class variables and initializing the memory to default values
     3. Resolution: transforming symbolic references from the type into direct references.
+>链接：执行验证，准备，和（可选）解决方案
+>
+>>验证：确认导入的类型的正确性
+>>
+>>准备：为类的变量分配内存，并且初始化内存为默认值
+>>
+>>解决方案：将`符号引用`从类型转换为`直接引用`。
 3. Initialization: invoking Java code that initializes class variables to their proper starting values.
+>初始化：调用Java代码，将类变量初始化为正确的起始值。
 
 The details of these processes are given Chapter 7, "The Lifetime of a Type."
+>具体细节在第七章`The Lifetime of a Type`可以找到
 
 #### The Bootstrap Class Loader
+
+Java virtual machine implementations must be able to recognize and load classes and interfaces stored in binary files that conform to the Java class file format. An implementation is free to recognize other binary forms besides class files, but it must recognize class files.
+>Java虚拟机的实现，必须要能够识别并加载存在（符合Java类文件格式的）二进制文件里的类和接口。
+
+Every Java virtual machine implementation has a bootstrap class loader, which knows how to load trusted classes, including the classes of the Java API. The Java virtual machine specification doesn't define how the bootstrap loader should locate classes. That is another decision the specification leaves to implementation designers.
+>每个Java虚拟机实现，都有一个bootstrap类加载器，它知道如何加载可信赖的类，包括Java API的类。
+
+Given a fully qualified type name, the bootstrap class loader must in some way attempt to produce the data that defines the type. One common approach is demonstrated by the Java virtual machine implementation in Sun's 1.1 JDK on Windows98. This implementation searches a user-defined directory path stored in an environment variable named CLASSPATH. The bootstrap loader looks in each directory, in the order the directories appear in the CLASSPATH, until it finds a file with the appropriate name: the type's simple name plus ".class". Unless the type is part of the unnamed package, the bootstrap loader expects the file to be in a subdirectory of one the directories in the CLASSPATH. The path name of the subdirectory is built from the package name of the type. For example, if the bootstrap class loader is searching for class java.lang.Object, it will look for Object.class in the java\lang subdirectory of each CLASSPATH directory.
+
+In 1.2, the bootstrap class loader of Sun's Java 2 SDK only looks in the directory in which the system classes (the class files of the Java API) were installed. The bootstrap class loader of the implementation of the Java virtual machine from Sun's Java 2 SDK does not look on the CLASSPATH. In Sun's Java 2 SDK virtual machine, searching the class path is the job of the system class loader, a user-defined class loader that is created automatically when the virtual machine starts up. More information on the class loading scheme of Sun's Java 2 SDK is given in Chapter 8, "The Linking Model."
+
 #### User-Defined Class Loaders
-#### Name Spaces
 
+Although user-defined class loaders themselves are part of the Java application, four of the methods in class ClassLoader are gateways into the Java virtual machine:
+>虽然用户定义的类加载器本身是Java应用程序的一部分，但类ClassLoader中的四个方法是进入Java虚拟机的门户（网关）：
 
+    // Four of the methods declared in class java.lang.ClassLoader:
+    protected final Class defineClass(String name, byte data[], int offset, int length);
+    protected final Class defineClass(String name, byte data[], int offset, int length, ProtectionDomain protectionDomain);
+    protected final Class findSystemClass(String name);
+    protected final void resolveClass(Class c);
 
+Any Java virtual machine implementation must take care to connect these methods of class ClassLoader to the internal class loader subsystem.
+>任何Java虚拟机实现都必须注意将类ClassLoader的这些方法连接到内部类加载器子系统。
 
+The two overloaded defineClass() methods accept a byte array, data[], as input. Starting at position offset in the array and continuing for length bytes, class ClassLoader expects binary data conforming to the Java class file format--binary data that represents a new type for the running application -- with the fully qualified name specified in name. The type is assigned to either a default protection domain, if the first version of defineClass() is used, or to the protection domain object referenced by the protectionDomain parameter. Every Java virtual machine implementation must make sure the defineClass() method of class ClassLoader can cause a new type to be imported into the method area.
+>没仔细看
+
+The findSystemClass() method accepts a String representing a fully qualified name of a type. When a user-defined class loader invokes this method in version 1.0 and 1.1, it is requesting that the virtual machine attempt to load the named type via its bootstrap class loader. If the bootstrap class loader has already loaded or successfully loads the type, it returns a reference to the Class object representing the type. If it can't locate the binary data for the type, it throws ClassNotFoundException. In version 1.2, the findSystemClass() method attempts to load the requested type from the system class loader. Every Java virtual machine implementation must make sure the findSystemClass() method can invoke the bootstrap (if version 1.0 or 1.1) or system (if version 1.2 or later) class loader in this way.
+>没仔细看
+
+The resolveClass() method accepts a reference to a Class instance. This method causes the type represented by the Class instance to be linked (if it hasn't already been linked). The defineClass() method, described previous, only takes care of loading. (See the previous section, "Loading, Linking, and Initialization" for definitions of these terms.) When defineClass() returns a Class instance, the binary file for the type has definitely been located and imported into the method area, but not necessarily linked and initialized. Java virtual machine implementations make sure the resolveClass() method of class ClassLoader can cause the class loader subsystem to perform linking.
+>没仔细看
+
+The details of how a Java virtual machine performs class loading, linking, and initialization, with user- defined class loaders is given in Chapter 8, "The Linking Model."
+>Java虚拟机通过用户定义的类加载器执行类加载，链接，初始化类的细节，在第八章`The Linking Model.`。
+
+#### Name Spaces （命名空间）
+
+As mentioned in Chapter 3, "Security," each class loader maintains its own name space populated by the types it has loaded. Because each class loader has its own name space, a single Java application can load multiple types with the same fully qualified name. A type's fully qualified name, therefore, is not always enough to uniquely identify it inside a Java virtual machine instance. If multiple types of that same name have been loaded into different name spaces, the identity of the class loader that loaded the type (the identity of the name space it is in) will also be needed to uniquely identify that type.
+>没仔细看
+
+Name spaces arise inside a Java virtual machine instance as a result of the process of resolution. As part of the data for each loaded type, the Java virtual machine keeps track of the class loader that imported the type. When the virtual machine needs to resolve a symbolic reference from one class to another, it requests the referenced class from the same class loader that loaded the referencing class. This process is described in detail in Chapter 8, "The Linking Model."
+>没仔细看
+
+---
+### [The Method Area](https://www.artima.com/insidejvm/ed2/jvm5.html)
+
+Inside a Java virtual machine instance, information about loaded types is stored in a logical area of memory called the method area. When the Java virtual machine loads a type, it uses a class loader to locate the appropriate class file. The class loader reads in the class file--a linear stream of binary data--and passes it to the virtual machine. The virtual machine extracts information about the type from the binary data and stores the information in the method area. Memory for class (static) variables declared in the class is also taken from the method area.
+>在Java虚拟机实例中，有关已加载类型（类或接口）的信息存储在称为方法区域的内存的逻辑区域中。当虚拟机加载类型（类或接口）时，它使用类加载器定位相应的class文件。类加载器读取class文件的信息-一段线性的字节流数据，然后传给虚拟机。虚拟机从字节数据中提取类型（类或接口）信息，并把这些信息存在方法区。类中声明的（静态）变量的内存也在方法区中。
+
+The manner in which a Java virtual machine implementation represents type information internally is a decision of the implementation designer. For example, multi-byte quantities in class files are stored in big- endian (most significant byte first) order. When the data is imported into the method area, however, a virtual machine can store the data in any manner. If an implementation sits on top of a little-endian processor, the designers may decide to store multi-byte values in the method area in little-endian order.
+>不同的虚拟机实现，可以有不同的内部表出现类型（类或接口）信息的方式。
+
+The virtual machine will search through and use the type information stored in the method area as it executes the application it is hosting. Designers must attempt to devise data structures that will facilitate speedy execution of the Java application, but must also think of compactness. If designing an implementation that will operate under low memory constraints, designers may decide to trade off some execution speed in favor of compactness. If designing an implementation that will run on a virtual memory system, on the other hand, designers may decide to store redundant information in the method area to facilitate execution speed. (If the underlying host doesn't offer virtual memory, but does offer a hard disk, designers could create their own virtual memory system as part of their implementation.) Designers can choose whatever data structures and organization they feel optimize their implementations performance, in the context of its requirements.
+
+All threads share the same method area, so access to the method area's data structures must be designed to be thread-safe. If two threads are attempting to find a class named Lava, for example, and Lava has not yet been loaded, only one thread should be allowed to load it while the other one waits.
+>所有线程共享同一个方法区，所以方法区数据需要被设计成线程安全的。如果两个线程都尝试去加载一个类，那么已更改只有一个线程的加载可以被允许，另一个需要等待。
+
+The size of the method area need not be fixed. As the Java application runs, the virtual machine can expand and contract the method area to fit the application's needs. Also, the memory of the method area need not be contiguous. It could be allocated on a heap--even on the virtual machine's own heap. Implementations may allow users or programmers to specify an initial size for the method area, as well as a maximum or minimum size.
+>方法区的大小不需要是固定的。当一个Java应用启动，虚拟机会扩展或收缩方法区的大小，来适应Java应用的需求。同时，方法区的内存不需要是连续的。它可以在堆上分配 - 甚至在虚拟机自己的堆上。 它允许用户或程序员指定方法区域的初始大小，以及最大或最小大小。
+
+The method area can also be garbage collected. Because Java programs can be dynamically extended via user-defined class loaders, classes can become "unreferenced" by the application. If a class becomes unreferenced, a Java virtual machine can unload the class (garbage collect it) to keep the memory occupied by the method area at a minimum. The unloading of classes--including the conditions under which a class can become "unreferenced"--is described in Chapter 7, "The Lifetime of a Type."
+>方法区也可以被垃圾回收。具体见第七章`The Lifetime of a Type.`
+
+#### Type Information
+
+For each type it loads, a Java virtual machine must store the following kinds of information in the method area:
+>每加载一个类型（类或接口），Java虚拟机要在方法区中存储如下信息：
+1. The fully qualified name of the type
+2. The fully qualified name of the type's direct superclass (unless the type is an interface or class java.lang.Object, neither of which have a superclass)
+3. Whether or not the type is a class or an interface
+4. The type's modifiers ( some subset of` public, abstract, final)
+5. An ordered list of the fully qualified names of any direct superinterfaces
+
+Inside the Java class file and Java virtual machine, type names are always stored as fully qualified names. In Java source code, a fully qualified name is the name of a type's package, plus a dot, plus the type's simple name. For example, the fully qualified name of class Object in package java.lang is java.lang.Object. In class files, the dots are replaced by slashes, as in java/lang/Object. In the method area, fully qualified names can be represented in whatever form and data structures a designer chooses.
+>在Java类文件和Java虚拟机中，类型（类或接口）名称始终存储为完全限定名称。例如java.lang中的Object，他的完全限定名称是java.lang.Object。
+
+In addition to the basic type information listed previously, the virtual machine must also store for each loaded type:
+>除了上面说的那些类型（类或接口）的基本信息，虚拟机还需要存储如下信息（在方法区）
+1. The constant pool for the type（常量池）
+2. Field information（字段信息）
+3. Method information（方法信息）
+4. All class (static) variables declared in the type, except constants（除了常量的所有（静态）变量）
+5. A reference to class ClassLoader（类加载器的引用）
+6. A reference to class Class（类的引用）
+
+This data is described in the following sections.
+
+#### The Constant Pool
+
+For each type it loads, a Java virtual machine must store a constant pool. A constant pool is an ordered set of constants used by the type, including literals (string, integer, and floating point constants) and symbolic references to types, fields, and methods. Entries in the constant pool are referenced by index, much like the elements of an array. Because it holds symbolic references to all types, fields, and methods used by a type, the constant pool plays a central role in the dynamic linking of Java programs. The constant pool is described in more detail later in this chapter and in Chapter 6, "The Java Class File."
+>常量池是一个有序的常量集，包括文字（字符串，整数，浮点常量），类型/字段/方法的符号引用。常量池中的数据跟数组很相似，是由索引来引用的。因为常量池包含所有类型/字段/方法的符号引用，所以常量池在Java程序的动态链接中起着核心作用。 常量池将在本章后面和第6章`The Java Class File.`中详细介绍。
+
+#### Field Information
+
+For each field declared in the type, the following information must be stored in the method area. In addition to the information for each field, the order in which the fields are declared by the class or interface must also be recorded. Here's the list for fields:
+>每一个声明过的字段，它的如下（1，2，3）信息都会被存储在常量池中。除此之外，他们的声明顺序也会被记录。
+1. The field's name
+2. The field's type
+3. The field's modifiers (some subset of public, private, protected, static, final, volatile, transient)
+
+#### Method Information
+
+For each method declared in the type, the following information must be stored in the method area. As with fields, the order in which the methods are declared by the class or interface must be recorded as well as the data. Here's the list:
+>跟字段一样，顺序也要存。
+1. The method's name
+2. The method's return type (or void)
+3. The number and types (in order) of the method's parameters
+4. The method's modifiers (some subset of public, private, protected, static, final, synchronized, native, abstract)
+
+In addition to the items listed previously, the following information must also be stored with each method that is not abstract or native:
+>除了上面说的那些，如下这些也要存（如果这个方法不是抽象/本地方法）
+1. The method's byteCodes
+2. The sizes of the operand stack and local variables sections of the method's stack frame (these are described in a later section of this chapter)
+>操作栈，栈帧中的本地变量
+3. An exception table (this is described in Chapter 17, "Exceptions")
+>异常表？第十七章`Exceptions`会有
+
+#### Class Variables
+
+Class variables are shared among all instances of a class and can be accessed even in the absence of any instance. These variables are associated with the class--not with instances of the class--so they are logically part of the class data in the method area. Before a Java virtual machine uses a class, it must allocate memory from the method area for each non-final class variable declared in the class.
+>类变量在类的所有实例之间共享，即使在没有任何实例的情况下也可以访问。这些变量与类相关联 - 而不是与类的实例相关联 - 因此它们在逻辑上是方法区域中类数据的一部分。 在Java虚拟机使用类之前，它必须为方法区域中为类中声明的每个非最终类变量分配内存。
+
+Constants (class variables declared final) are not treated in the same way as non-final class variables. Every type that uses a final class variable gets a copy of the constant value in its own constant pool. As part of the constant pool, final class variables are stored in the method area--just like non-final class variables. But whereas non-final class variables are stored as part of the data for the type that declares them, final class variables are stored as part of the data for any type that uses them. This special treatment of constants is explained in more detail in Chapter 6, "The Java Class File."
+>常量（声明为final的类变量）的处理方式与非final类变量的处理方式不同。每个使用final变量的类型（类或接口）会在自己的常量池中存放一个常量值的拷贝值。作为常量值的一部分，类中的final变量会被存在方法区，跟非final变量一样。
+>>但是，他们的区别是（个人理解），非final变量作为声明它的那个类型的数据的一部分来存储，final单独存储。举个例子：
+>>  
+>>      public class Test{
+>>      final String a;
+>>      String b;
+>>      }
+>>
+>>a跟Test一起存储，b单独存储（虽然也在常量池中）
+>详细内容在第六章`The Java Class File`中有介绍
+
+#### A Reference to Class ClassLoader
+
+For each type it loads, a Java virtual machine must keep track of whether or not the type was loaded via the bootstrap class loader or a user-defined class loader. For those types loaded via a user-defined class loader, the virtual machine must store a reference to the user-defined class loader that loaded the type. This information is stored as part of the type's data in the method area.
+>Java虚拟机要区分类型（类或接口）是由bootstrap加载的还是用户类加载器加载的，所以通过用户加载器加载的这些类型（类或接口），Java虚拟机会储存一个对用户定义类加载器的引用在方法区。
+
+The virtual machine uses this information during dynamic linking. When one type refers to another type, the virtual machine requests the referenced type from the same class loader that loaded the referencing type. This process of dynamic linking is also central to the way the virtual machine forms separate name spaces. To be able to properly perform dynamic linking and maintain multiple name spaces, the virtual machine needs to know what class loader loaded each type in its method area. The details of dynamic linking and name spaces are given in Chapter 8, "The Linking Model."
+>
+
+#### A Reference to Class Class
+#### Method Tables
+#### An Example of Method Area Use
 
 
 ---
-### [The Lifetime of a Java Virtual Machine](https://www.artima.com/insidejvm/ed2/jvm.html)
+### [The Method Area](https://www.artima.com/insidejvm/ed2/jvm5.html)
+
+
+---
+### [The Method Area](https://www.artima.com/insidejvm/ed2/jvm5.html)
+
+
+---
+### [The Method Area](https://www.artima.com/insidejvm/ed2/jvm5.html)
+
+
+---
+### [The Method Area](https://www.artima.com/insidejvm/ed2/jvm5.html)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
