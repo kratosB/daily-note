@@ -433,15 +433,17 @@ Finally, the virtual machine is ready to actually allocate memory for a new Lava
 > * 虚拟机通过指向Lava的数据（刚刚放到方法区的）的指针（刚刚放到Volcano的常量池查找条目1（entry one）中的），找到并确定要在堆中给Lava对象分配多少内存。
 
 A Java virtual machine can always determine the amount of memory required to represent an object by looking into the class data stored in the method area. The actual amount of heap space required by a particular object, however, is implementation-dependent. The internal representation of objects inside a Java virtual machine is another decision of implementation designers. Object representation is discussed in more detail later in this chapter.
-> * 
-> * 
+> * 通过查看存储在方法区的类数据，Java虚拟机始终可以确定表示这个对象需要多少内存。
+>
+>但是，一个特定对象在堆中的实际大小，取决于不用的Java虚拟机实现。Java虚拟机对对象内部的实现也取决于Java虚拟机实现者。这一章的后面会详细讨论对象表示。
 
 Once the Java virtual machine has determined the amount of heap space required by a Lava object, it allocates that space on the heap and initializes the instance variable speed to zero, its default initial value. If class Lava's superclass, Object, has any instance variables, those are also initialized to default initial values. (The details of initialization of both classes and objects are given in Chapter 7, "The Lifetime of a Type.")
-
-
+> * 当Java虚拟机确定了要在堆中给Lava对象分配多少内存，它就在堆上分配那些空间，并初始化`Lava对象`中的变量实例`speed`为0，0是默认初始化值。如果Lava的父类（在这边是Object类），也有实例变量，那么它们也会被初始化成默认初始值。（初始化类和对象的详细信息在第七章`The Lifetime of a Type.`中）
 
 The first instruction of main() completes by pushing a reference to the new Lava object onto the stack. A later instruction will use the reference to invoke Java code that initializes the speed variable to its proper initial value, five. Another instruction will use the reference to invoke the flow() method on the referenced Lava object.
-
+> * Java虚拟机把新的Lava对象的引用push到栈里之后，main()方法的第一个指令完成了。
+> * 下一个指令会使用这个引用来调用Java代码，来初始化`speed`变量为它正确的初始值，5。
+> * 零一条指令会使用这个引用来调用被引用的Lava对象上的flow()方法。
 
 
 ---
