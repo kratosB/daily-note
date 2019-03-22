@@ -326,11 +326,122 @@ For each type it loads, a Java virtual machine must keep track of whether or not
 >Java虚拟机要区分类型（类或接口）是由bootstrap加载的还是用户类加载器加载的，所以通过用户加载器加载的这些类型（类或接口），Java虚拟机会储存一个对用户定义类加载器的引用在方法区。
 
 The virtual machine uses this information during dynamic linking. When one type refers to another type, the virtual machine requests the referenced type from the same class loader that loaded the referencing type. This process of dynamic linking is also central to the way the virtual machine forms separate name spaces. To be able to properly perform dynamic linking and maintain multiple name spaces, the virtual machine needs to know what class loader loaded each type in its method area. The details of dynamic linking and name spaces are given in Chapter 8, "The Linking Model."
->
+>虚拟机在动态链接（只有在用到这个类的时候，才会去加载相关内容）的时候会用到这些信息。跟动态链接和多重命名空件有关。第八章`The Linking Model.`里面会介绍。
 
 #### A Reference to Class Class
+
+An instance of class java.lang.Class is created by the Java virtual machine for every type it loads. The virtual machine must in some way associate a reference to the Class instance for a type with the type's data in the method area.
+>每个类型（类或接口）被Java虚拟机加载的时候，都会有一个java.lang.Class的实例被创建。虚拟机必须以某种方式将对类型（类或接口）实例的引用与方法区域中类型（类或接口）的数据相关联。
+
+Your Java programs can obtain and use references to Class objects. One static method in class Class, allows you to get a reference to the Class instance for any loaded class:
+>您的Java程序可以获取和使用对Class对象的引用。 类Class中的一个静态方法允许您获取对任何已加载类的Class实例的引用：
+
+    // A method declared in class java.lang.Class:
+    public static Class forName(String className);
+
+If you invoke forName("java.lang.Object"), for example, you will get a reference to the Class object that represents java.lang.Object. If you invoke forName("java.util.Enumeration"), you will get a reference to the Class object that represents the Enumeration interface from the java.util package. You can use forName() to get a Class reference for any loaded type from any package, so long as the type can be (or already has been) loaded into the current name space. If the virtual machine is unable to load the requested type into the current name space, forName() will throw ClassNotFoundException.
+>如果你调用了`forName("java.lang.Object")`，您将获得对表示java.lang.Object的Class对象的引用（实际上这个对象是Class这个类的对象，但是里面的内容，都是java.lang.Object的内容，比方你调用getName()，获取到的是java.lang.Object，getMethods()，获取到的也都是java.lang.Object里面的方法）。您可以使用forName（）从任何包中获取任何已经加载的类型（类或接口）的Class引用，只要该类型可以（或已经）加载到当前名称空间中即可。
+
+An alternative way to get a Class reference is to invoke getClass() on any object reference. This method is inherited by every object from class Object itself:
+>另一种获取Class对象的引用的方法是调用Object中的getClass()方法
+
+    // A method declared in class java.lang.Object:
+    public final Class getClass();
+
+If you have a reference to an object of class java.lang.Integer, for example, you could get the Class object for java.lang.Integer simply by invoking getClass() on your reference to the Integer object.
+
+Given a reference to a Class object, you can find out information about the type by invoking methods declared in class Class. If you look at these methods, you will quickly realize that class Class gives the running application access to the information stored in the method area. Here are some of the methods declared in class Class:
+>通过得到Class对象的引用，你能获取很多这个类型（类或接口）的信息。下面是一些Class类中的方法：
+
+    // Some of the methods declared in class java.lang.Class:
+    public String getName();
+    public Class getSuperClass();
+    public boolean isInterface();
+    public Class[] getInterfaces();
+    public ClassLoader getClassLoader();
+
+These methods just return information about a loaded type. getName() returns the fully qualified name of the type. getSuperClass() returns the Class instance for the type's direct superclass. If the type is class java.lang.Object or an interface, none of which have a superclass, getSuperClass() returns null. isInterface() returns true if the Class object describes an interface, false if it describes a class. getInterfaces() returns an array of Class objects, one for each direct superinterface. The superinterfaces appear in the array in the order they are declared as superinterfaces by the type. If the type has no direct superinterfaces, getInterfaces() returns an array of length zero. getClassLoader() returns a reference to the ClassLoader object that loaded this type, or null if the type was loaded by the bootstrap class loader. All this information comes straight out of the method area.
+>这些方法会返回已经加载的类型（类或接口）的信息
+>>getName()返回完整的类名  
+>>getSuperClass()返回直接父类的class实例（包含它父类信息的class对象），如果是没有父类的类（例如java.lang.Object或者接口），那就返回空  
+>>isInterface()会告诉你这个类型（类或接口）是不是接口  
+>>getInterfaces()返回一个数组（包括好多类），都是父类接口的信息。某些情况下数组的长度会是0，（没有深入研究）  
+>>getClassLoader()返回了类加载器的class实例（包含类加载器信息的class对象），如果是bootstrap那就返回空。
+>
+>所有这些信息直接来自方法区域。
+
 #### Method Tables
+
+The type information stored in the method area must be organized to be quickly accessible. In addition to the raw type information listed previously, implementations may include other data structures that speed up access to the raw data. One example of such a data structure is a method table. For each non-abstract class a Java virtual machine loads, it could generate a method table and include it as part of the class information it stores in the method area. A method table is an array of direct references to all the instance methods that may be invoked on a class instance, including instance methods inherited from superclasses. (A method table isn't helpful in the case of abstract classes or interfaces, because the program will never instantiate these.) A method table allows a virtual machine to quickly locate an instance method invoked on an object. Method tables are described in detail in Chapter 8, "The Linking Model."
+>这些存储在方法区里的类型（类或接口）信息，必须要被组织成能够被非常快地访问的结构。**方法表**是一种可行的数据结构。方法表是一个直接引用的数组，它的内容是“所有会在这个类的实例中被调用的实例方法”，包括从父类继承来的父类方法。方法表在抽象类或接口的情况下没有用，因为程序永远不会实例化这些。方法表允许虚拟机快速定位对象调用的实例方法。详细介绍在第八章`The Linking Model.`
+
 #### An Example of Method Area Use
+
+As an example of how the Java virtual machine uses the information it stores in the method area, consider these classes:
+>下面是一个Java虚拟机使用方法区中存的信息的例子
+
+    // On CD-ROM in file jvm/ex2/Lava.java
+    class Lava {
+    
+        private int speed = 5; // 5 kilometers per hour
+    
+        void flow() {
+        }
+    }
+    
+    // On CD-ROM in file jvm/ex2/Volcano.java
+    class Volcano {
+    
+        public static void main(String[] args) {
+            Lava lava = new Lava();
+            lava.flow();
+        }
+    }
+
+The following paragraphs describe how an implementation might execute the first instruction in the bytecodes for the main() method of the Volcano application. Different implementations of the Java virtual machine can operate in very different ways. The following description illustrates one way--but not the only way--a Java virtual machine could execute the first instruction of Volcano's main() method.
+
+To run the Volcano application, you give the name "Volcano" to a Java virtual machine in an implementation-dependent manner. Given the name Volcano, the virtual machine finds and reads in file Volcano.class. It extracts the definition of class Volcano from the binary data in the imported class file and places the information into the method area. The virtual machine then invokes the main() method, by interpreting the bytecodes stored in the method area. As the virtual machine executes main(), it maintains a pointer to the constant pool (a data structure in the method area) for the current class (class Volcano).
+> * 首先给到类名（每种实现方式不一样，给类名的方式也不一样，不在这里讨论），Java虚拟机找到，并读取Volcano.class文件。
+> * 虚拟机从导入的类文件的二进制码中提取类Volcano的定义，并将信息放入方法区。
+> * 虚拟机通过解读方法区中的字节码，调用main()方法。
+> * 当虚拟机执行main()方法时，它维护一个指向当前类（类Volcano）的常量池（方法区域中的数据结构）的指针。
+
+Note that this Java virtual machine has already begun to execute the bytecodes for main() in class Volcano even though it hasn't yet loaded class Lava. Like many (probably most) implementations of the Java virtual machine, this implementation doesn't wait until all classes used by the application are loaded before it begins executing main(). It loads classes only as it needs them.
+>明确一点，Java虚拟机已经开始执行Volcano的main()方法了，但是它还没有加载Lava类。绝大多数的Java虚拟机的实现，都不会等待所有（该应用）要使用的类加载完，而是会直接启动main()方法。它只有在需要（用到）这些类的时候，才会加载它们。
+
+main()'s first instruction tells the Java virtual machine to allocate enough memory for the class listed in constant pool entry one. The virtual machine uses its pointer into Volcano's constant pool to look up entry one and finds a symbolic reference to class Lava. It checks the method area to see if Lava has already been loaded.
+> * main()方法的第一条指令告诉Java虚拟机，给常量池条目1（entry one）中列出的类分配足够多的内存。
+> * 虚拟机通过它的指针进入Volcano的常量池查找条目1（entry one），找到了Lava类的符号引用。
+> * 虚拟机检查方法区，判断Lava类是否已经被加载。
+
+The symbolic reference is just a string giving the class's fully qualified name: "Lava". Here you can see that the method area must be organized so a class can be located--as quickly as possible--given only the class's fully qualified name. Implementation designers can choose whatever algorithm and data structures best fit their needs--a hash table, a search tree, anything. This same mechanism can be used by the static forName() method of class Class, which returns a Class reference given a fully qualified name.
+> 符号引用只是一个全量类名的字符串。（通过这个你就明白为什么方法区要被特别设计，为了让一个类能够尽快的被加载（只凭借全量类名），JVM的实现者可以使用任何算法来实现这个，static forName()也可以用这个）
+
+When the virtual machine discovers that it hasn't yet loaded a class named "Lava," it proceeds to find and read in file Lava.class. It extracts the definition of class Lava from the imported binary data and places the information into the method area.
+> * 当虚拟机发现它没有加载Lava类，虚拟机继续查找，并读取Lava.class文件
+> * 虚拟机从导入的类文件的二进制码中提取类Lava的定义，并将信息放入方法区。
+
+The Java virtual machine then replaces the symbolic reference in Volcano's constant pool entry one, which is just the string "Lava", with a pointer to the class data for Lava. If the virtual machine ever has to use Volcano's constant pool entry one again, it won't have to go through the relatively slow process of searching through the method area for class Lava given only a symbolic reference, the string "Lava". It can just use the pointer to more quickly access the class data for Lava. This process of replacing symbolic references with direct references (in this case, a native pointer) is called constant pool resolution. The symbolic reference is resolved into a direct reference by searching through the method area until the referenced entity is found, loading new classes if necessary.
+> * Lava加载完之后，Java虚拟机会把Volcano的线程池条目1（entry one）中的符号引用替换成一个指针，指向Lava的类数据。
+>
+>如果虚拟机还要使用Volcano的常量池条目1（entry one），它不需要再经历相对比较慢的，在方法区中，根据符号引用（Lava全量类名），搜索Lava类的的过程。Java虚拟机只需要使用指针，就能够怪苏访问Lava的类数据。
+>>这个把符号引用替换成直接引用（在这个例子中是指针）的过程，被叫做常量池分解（resolution）。通过查找方法区，找到引用的实体（必要时加载新的类），把符号引用解析成直接引用。
+
+Finally, the virtual machine is ready to actually allocate memory for a new Lava object. Once again, the virtual machine consults the information stored in the method area. It uses the pointer (which was just put into Volcano's constant pool entry one) to the Lava data (which was just imported into the method area) to find out how much heap space is required by a Lava object.
+> * 最终，虚拟机准备好给新的Lava对象分配内存了。
+> * 虚拟机再次查询存储在方法区中的信息。
+> * 虚拟机通过指向Lava的数据（刚刚放到方法区的）的指针（刚刚放到Volcano的常量池查找条目1（entry one）中的），找到并确定要在堆中给Lava对象分配多少内存。
+
+A Java virtual machine can always determine the amount of memory required to represent an object by looking into the class data stored in the method area. The actual amount of heap space required by a particular object, however, is implementation-dependent. The internal representation of objects inside a Java virtual machine is another decision of implementation designers. Object representation is discussed in more detail later in this chapter.
+> * 
+> * 
+
+Once the Java virtual machine has determined the amount of heap space required by a Lava object, it allocates that space on the heap and initializes the instance variable speed to zero, its default initial value. If class Lava's superclass, Object, has any instance variables, those are also initialized to default initial values. (The details of initialization of both classes and objects are given in Chapter 7, "The Lifetime of a Type.")
+
+
+
+The first instruction of main() completes by pushing a reference to the new Lava object onto the stack. A later instruction will use the reference to invoke Java code that initializes the speed variable to its proper initial value, five. Another instruction will use the reference to invoke the flow() method on the referenced Lava object.
+
 
 
 ---
