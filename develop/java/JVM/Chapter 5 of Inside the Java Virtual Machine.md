@@ -165,11 +165,13 @@ The class loader subsystem is responsible for more than just locating and import
 >这个类加载子系统不但负责定位并输入类的二进制数据，而且验证输入的类的正确性，为类的变量初始化并分配内存，并在解决方案上协助符号引用。这些活动按严格的顺序执行：
 
 1. Loading: finding and importing the binary data for a type
->加载：查找并导入类型（类或接口）的二进制数据
 2. Linking: performing verification, preparation, and (optionally) resolution
     1. Verification: ensuring the correctness of the imported type
     2. Preparation: allocating memory for class variables and initializing the memory to default values
     3. Resolution: transforming symbolic references from the type into direct references.
+3. Initialization: invoking Java code that initializes class variables to their proper starting values.
+>加载：查找并导入类型（类或接口）的二进制数据
+>
 >链接：执行验证，准备，和（可选）解决方案
 >
 >>验证：确认导入的类型的正确性
@@ -177,7 +179,7 @@ The class loader subsystem is responsible for more than just locating and import
 >>准备：为类的变量分配内存，并且初始化内存为默认值
 >>
 >>解决方案：将`符号引用`从类型转换为`直接引用`。
-3. Initialization: invoking Java code that initializes class variables to their proper starting values.
+>
 >初始化：调用Java代码，将类变量初始化为正确的起始值。
 
 The details of these processes are given Chapter 7, "The Lifetime of a Type."
@@ -299,9 +301,10 @@ In addition to the items listed previously, the following information must also 
 >除了上面说的那些，如下这些也要存（如果这个方法不是抽象/本地方法）
 1. The method's byteCodes
 2. The sizes of the operand stack and local variables sections of the method's stack frame (these are described in a later section of this chapter)
->操作栈，栈帧中的本地变量
 3. An exception table (this is described in Chapter 17, "Exceptions")
->异常表？第十七章`Exceptions`会有
+>1. 
+>2. 操作栈，栈帧中的本地变量
+>3. 异常表？第十七章`Exceptions`会有
 
 #### Class Variables
 
@@ -473,73 +476,117 @@ As with the method area, the memory that makes up the heap need not be contiguou
 The Java virtual machine specification is silent on how objects should be represented on the heap. Object representation--an integral aspect of the overall design of the heap and garbage collector--is a decision of implementation designers
 
 The primary data that must in some way be represented for each object is the instance variables declared in the object's class and all its superclasses. Given an object reference, the virtual machine must be able to quickly locate the instance data for the object. In addition, there must be some way to access an object's class data (stored in the method area) given a reference to the object. For this reason, the memory allocated for an object usually includes some kind of pointer into the method area.
+>凭借一个对象的引用，必须能够快速定位到这个对象的实例数据，和它的类数据（方法区中的类信息）。所以堆当中这个对象的内存，通常包括一个指向方法区的指针。
 
 One possible heap design divides the heap into two parts: a handle pool and an object pool. An object reference is a native pointer to a handle pool entry. A handle pool entry has two components: a pointer to instance data in the object pool and a pointer to class data in the method area. The advantage of this scheme is that it makes it easy for the virtual machine to combat heap fragmentation. When the virtual machine moves an object in the object pool, it need only update one pointer with the object's new address: the relevant pointer in the handle pool. The disadvantage of this approach is that every access to an object's instance data requires dereferencing two pointers. This approach to object representation is shown graphically in Figure 5-5. This kind of heap is demonstrated interactively by the HeapOfFish applet, described in Chapter 9, "Garbage Collection."
+>有一种方法是把堆分成两部分：一个句柄池和一个对象池。对象引用是一个指向句柄池条目的本地指针。句柄池条目分成两个部分：一个指向实例数据（对象池中的）的指针，和一个指向方法区中的类信息的指针。
+>
+>优点：这种设计可以让虚拟机清理碎片变得更简单。（堆内存整理的时候，什么都不用改，只要改句柄池里面的引用就行了）当虚拟机移动对象池中的对象时，它只需要使用对象的新地址更新一个指针：句柄池中的相关指针。
+>
+>缺点：每次访问对象的实例数据，都得解析两个指针（对象引用指针+句柄池指针 / 还是要在句柄池两个指针间做判断？ 应该是前者）。
+>
+>这种对象表示方法如图5-5所示。这种堆由HeapOfFish小程序以交互方式演示，如第9章`Garbage Collection.`中所述。
 
 ![Splitting an object across a handle pool and object pool](https://www.artima.com/insidejvm/ed2/images/fig5-5.gif "Splitting an object across a handle pool and object pool")
 
 **Figure 5-5. Splitting an object across a handle pool and object pool.**
 
 Another design makes an object reference a native pointer to a bundle of data that contains the object's instance data and a pointer to the object's class data. This approach requires dereferencing only one pointer to access an object's instance data, but makes moving objects more complicated. When the virtual machine moves an object to combat fragmentation of this kind of heap, it must update every reference to that object anywhere in the runtime data areas. This approach to object representation is shown graphically in Figure 5-6.
-
+>另一种设计，堆不再被分为两个部分，让对象引用直接指向一个合集，合集包括对象实例数据，和指向方法区中的类数据的指针。
+>
+>优点：每次访问对象的实例数据，只需要解析一个指针。
+>
+>缺点：移动对象更复杂。清理内存碎片移动对象的时候，对象引用要更新（如果有好几个引用引用了这个对象，那就要更新好几个）。
+>
+>这种对象表示方法如图5-6所示。
 ![Keeping object data all in one place](https://www.artima.com/insidejvm/ed2/images/fig5-6.gif "Keeping object data all in one place")
 
 **Figure 5-6. Keeping object data all in one place.**
 
 The virtual machine needs to get from an object reference to that object's class data for several reasons. When a running program attempts to cast an object reference to another type, the virtual machine must check to see if the type being cast to is the actual class of the referenced object or one of its supertypes. . It must perform the same kind of check when a program performs an instanceof operation. In either case, the virtual machine must look into the class data of the referenced object. When a program invokes an instance method, the virtual machine must perform dynamic binding: it must choose the method to invoke based not on the type of the reference but on the class of the object. To do this, it must once again have access to the class data given only a reference to the object.
+>虚拟机经常会需要根据对象引用去获取对象的类信息（原因很多）。例如，当程序尝试把一个对象引用转换成另一个类型，虚拟机需要检查一下，转换的这个类型，是不是这个对象，或者它的父类中的一个。另外，用到instanceof方法的时候，也会要查一下。在这些例子中，虚拟机都必须调查类信息。当一个程序调用了一个实例方法，虚拟机必须执行动态绑定：动态绑定调用的方法是基于对象的类的，而不是引用的类型的。所以还要访问（对象中指向的）方法区中的类数据。
+>>静态绑定，private，final，和static的方法，在编译过程中就知道是那个类的方法
+>>
+>>动态绑定，在程序运行过程中，根据具体的实例对象才能具体确定是哪个方法。
+>
+>参考资料1，[java — 静态绑定和动态绑定](https://www.cnblogs.com/Mr24/p/6767972.html)  
+>参考资料2，[Java方法的静态绑定与动态绑定讲解（向上转型的运行机制详解）](https://www.cnblogs.com/ygj0930/p/6554103.html)
 
 No matter what object representation an implementation uses, it is likely that a method table is close at hand for each object. Method tables, because they speed up the invocation of instance methods, can play an important role in achieving good overall performance for a virtual machine implementation. Method tables are not required by the Java virtual machine specification and may not exist in all implementations. Implementations that have extremely low memory requirements, for instance, may not be able to afford the extra memory space method tables occupy. If an implementation does use method tables, however, an object's method table will likely be quickly accessible given just a reference to the object.
+>方法表（方法区中的）可以加速方法实例的调用。它不是虚拟机规范中要求的。但是如果有方法表，只需引用该对象，就可以快速访问对象的方法表。
 
 One way an implementation could connect a method table to an object reference is shown graphically in Figure 5-7. This figure shows that the pointer kept with the instance data for each object points to a special structure. The special structure has two components:
+>方法表和对象引用关联的一个例子在图5-7中展示。图里面展示的是，对象引用-实例数据-特殊结构，之间的指针。这个特殊的结构包含两个部分。
 
 1. A pointer to the full the class data for the object
 2. The method table for the object The method table is an array of pointers to the data for each instance method that can be invoked on objects of that class. The method data pointed to by method table includes:
-3. The sizes of the operand stack and local variables sections of the method's stack
-4. The method's bytecodes
-5. An exception table
+    1. The sizes of the operand stack and local variables sections of the method's stack
+    2. The method's bytecodes
+    3. An exception table
+>指向，对象的完整的类数据，的指针
+>
+>这个对象的方法表。方法表是一个存储指针的数组，指向（这个类的对象的）每个实例方法的数据。方法表指向的方法数据如下：
+>>方法堆栈的操作数堆栈和局部变量部分的大小  
+>>方法的字节码  
+>>异常表
 
 This gives the virtual machine enough information to invoke the method. The method table include pointers to data for methods declared explicitly in the object's class or inherited from superclasses. In other words, the pointers in the method table may point to methods defined in the object's class or any of its superclasses. More information on method tables is given in Chapter 8, "The Linking Model."
+>方法表给虚拟机提供了足够的信息，来调用方法。方法表包含了指向，这个对象的类中明确定义的，或者，从父类中继承的，方法的数据。换句话说，方法表中的指针可能指向对象的类中的方法，也可能是父类中的方法。更多信息可以在第八章`The Linking Model.`中找到
 
 ![Keeping the method table close at hand](https://www.artima.com/insidejvm/ed2/images/fig5-7.gif "Keeping the method table close at hand")
 
 **Figure 5-7. Keeping the method table close at hand.**
 
 If you are familiar with the inner workings of C++, you may recognize the method table as similar to the VTBL or virtual table of C++ objects. In C++, objects are represented by their instance data plus an array of pointers to any virtual functions that can be invoked on the object. This approach could also be taken by a Java virtual machine implementation. An implementation could include a copy of the method table for a class as part of the heap image for every instance of that class. This approach would consume more heap space than the approach shown in Figure 5-7, but might yield slightly better performance on a systems that enjoy large quantities of available memory.
+>方法表跟C++对象中的VTBL或虚拟表很相似。在C++中，对象被表现为“它们的实例数据”+“一个包含指针的数组，指向一些这个对象可以调用的虚拟方法”。这种方法占用更多的堆空间，但是速度快。
 
 One other kind of data that is not shown in Figures 5-5 and 5-6, but which is logically part of an object's data on the heap, is the object's lock. Each object in a Java virtual machine is associated with a lock (or mutex) that a program can use to coordinate multi-threaded access to the object. Only one thread at a time can "own" an object's lock. While a particular thread owns a particular object's lock, only that thread can access that object's instance variables. All other threads that attempt to access the object's variables have to wait until the owning thread releases the object's lock. If a thread requests a lock that is already owned by another thread, the requesting thread has to wait until the owning thread releases the lock. Once a thread owns a lock, it can request the same lock again multiple times, but then has to release the lock the same number of times before it is made available to other threads. If a thread requests a lock three times, for example, that thread will continue to own the lock until it has released it three times.
+>还有一种数据，没有在图5-5和图5-6中表现，但是它是堆上对象数据的一部分，是一个对象锁。Java虚拟机上的每一个对象都被分配了一个锁，所以一个程序可以用它来协调多个线程访问同一个对象。同一时间段，只有一个线程可以拥有一个对象锁。只有有锁的对象能访问对象的实例变量。其他尝试访问的线程都需要等待锁的释放。如果一个线程已经有锁了，它可以多次请求拥有锁，但是对应的也要多此释放。
 
 Many objects will go through their entire lifetimes without ever being locked by a thread. The data required to implement an object's lock is not needed unless the lock is actually requested by a thread. As a result, many implementations, such as the ones shown in Figure 5-5 and 5-6, may not include a pointer to "lock data" within the object itself. Such implementations must create the necessary data to represent a lock when the lock is requested for the first time. In this scheme, the virtual machine must associate the lock with the object in some indirect way, such as by placing the lock data into a search tree based on the object's address.
+>许多线程整个生命周期也不会被线程锁定。图5-5和图5-6中的实现，必须创建必要的数据，来表示锁。
 
 Along with data that implements a lock, every Java object is logically associated with data that implements a wait set. Whereas locks help threads to work independently on shared data without interfering with one another, wait sets help threads to cooperate with one another--to work together towards a common goal.
+>没看明白
 
 Wait sets are used in conjunction with wait and notify methods. Every class inherits from Object three "wait methods" (overloaded forms of a method named wait()) and two "notify methods" (notify() and notifyAll()). When a thread invokes a wait method on an object, the Java virtual machine suspends that thread and adds it to that object's wait set. When a thread invokes a notify method on an object, the virtual machine will at some future time wake up one or more threads from that object's wait set. As with the data that implements an object's lock, the data that implements an object's wait set is not needed unless a wait or notify method is actually invoked on the object. As a result, many implementations of the Java virtual machine may keep the wait set data separate from the actual object data. Such implementations could allocate the data needed to represent an object's wait set when a wait or notify method is first invoked on that object by the running application. For more information about locks and wait sets, see Chapter 20, "Thread Synchronization."
+>没怎么看，没看明白
 
 One last example of a type of data that may be included as part of the image of an object on the heap is any data needed by the garbage collector. The garbage collector must in some way keep track of which objects are referenced by the program. This task invariably requires data to be kept for each object on the heap. The kind of data required depends upon the garbage collection technique being used. For example, if an implementation uses a mark and sweep algorithm, it must be able to mark an object as referenced or unreferenced. For each unreferenced object, it may also need to indicate whether or not the object's finalizer has been run. As with thread locks, this data may be kept separate from the object image. Some garbage collection techniques only require this extra data while the garbage collector is actually running. A mark and sweep algorithm, for instance, could potentially use a separate bitmap for marking referenced and unreferenced objects. More detail on various garbage collection techniques, and the data that is required by each of them, is given in Chapter 9, "Garbage Collection."
+>没怎么看，没看明白
 
 In addition to data that a garbage collector uses to distinguish between reference and unreferenced objects, a garbage collector needs data to keep track of which objects on which it has already executed a finalizer. Garbage collectors must run the finalizer of any object whose class declares one before it reclaims the memory occupied by that object. The Java language specification states that a garbage collector will only execute an object's finalizer once, but allows that finalizer to "resurrect" the object: to make the object referenced again. When the object becomes unreferenced for a second time, the garbage collector must not finalize it again. Because most objects will likely not have a finalizer, and very few of those will resurrect their objects, this scenario of garbage collecting the same object twice will probably be extremely rare. As a result, the data used to keep track of objects that have already been finalized, though logically part of the data associated with an object, will likely not be part of the object representation on the heap. In most cases, garbage collectors will keep this information in a separate place. Chapter 9, "Garbage Collection," gives more information about finalization.
+>没怎么看，没看明白
 
 #### Array Representation
 
 In Java, arrays are full-fledged objects. Like objects, arrays are always stored on the heap. Also like objects, implementation designers can decide how they want to represent arrays on the heap.
+>在Java中，数组是一种完整的对象。跟对象一样，数组永远存在堆中。同样，开发者也可以决定怎么在堆里表现数组。
 
 Arrays have a Class instance associated with their class, just like any other object. All arrays of the same dimension and type have the same class. The length of an array (or the lengths of each dimension of a multidimensional array) does not play any role in establishing the array's class. For example, an array of three ints has the same class as an array of three hundred ints. The length of an array is considered part of its instance data.
+>与其他对象一样，数组有一个与其类关联的Class实例。 具有相同维度和类型的所有数组具有相同的类。数组的长度（或者多维数组每个维度的长度）在建立数组的类中不起任何作用。例如，一个有3个int的数组，跟一个有300个int的数组，有同样的类。数组的长度被视为其实例数据的一部分。
 
 The name of an array's class has one open square bracket for each dimension plus a letter or string representing the array's type. For example, the class name for an array of ints is "[I". The class name for a three-dimensional array of bytes is "[[[B". The class name for a two-dimensional array of Objects is "[[Ljava.lang.Object". The full details of this naming convention for array classes is given in Chapter 6, "The Java Class File."
+>数组的类的名字，由`[`加上一个字母或者字符串。数组每多一个维度，就多一个`[`。于格利兹，int[]的类名就是"[I".byte[][][]的类名就是"[[[B"。String[][]的类名是"[[Ljava.lang.Object"。第6章`The Java Class File.`中给出了这种数组类命名约定的完整细节。
 
 Multi-dimensional arrays are represented as arrays of arrays. A two dimensional array of ints, for example, would be represented by a one dimensional array of references to several one dimensional arrays of ints. This is shown graphically in Figure 5-8.
+>多维数组可以表示成数组中的元素也是数组。举个例子，一个二维int数组，可以理解为一个一维的数组，里面的元素是很多一维的int数组。就像下面的图5-8中一样。
 
 ![One possible heap representation for arrays](https://www.artima.com/insidejvm/ed2/images/fig5-8.gif "One possible heap representation for arrays")
 
 **Figure 5-8. One possible heap representation for arrays.**
 
 The data that must be kept on the heap for each array is the array's length, the array data, and some kind of reference to the array's class data. Given a reference to an array, the virtual machine must be able to determine the array's length, to get and set its elements by index (checking to make sure the array bounds are not exceeded), and to invoke any methods declared by Object, the direct superclass of all arrays.
+>堆上面为每个数组保存的数据包括，长度，数组数据，和引用。给定一个对数组的引用，虚拟机必须能够确定数组的长度，通过索引获取和设置其元素（检查以确保不超过数组边界），并调用Object声明的任何方法，Object是所有数组的直接超类。
 
 ---
-### [The Method Area](https://www.artima.com/insidejvm/ed2/jvm5.html)
+### [The Program Counter](https://www.artima.com/insidejvm/ed2/jvm7.html)
 
+Each thread of a running program has its own pc register, or program counter, which is created when the thread is started. The pc register is one word in size, so it can hold both a native pointer and a returnAddress. As a thread executes a Java method, the pc register contains the address of the current instruction being executed by the thread. An "address" can be a native pointer or an offset from the beginning of a method's bytecodes. If a thread is executing a native method, the value of the pc register is undefined.
+>运行的程序的每一个线程，都有它自己的程序计数器（pc寄存器），计数器是伴随线程的创建而创建的。程序计数器的大小是一个`word`（前面介绍过word，可以搜一下），所以它能放下本地指针和返回地址。一个线程执行一个Java方法，程序计数器包含了线程当前操作的指令的地址。“地址”可以是本机指针，也可以是方法字节码开头的偏移量。如果一个线程在执行native方法，那么程序计数器就是未定义。
 
 ---
-### [The Method Area](https://www.artima.com/insidejvm/ed2/jvm5.html)
+### [The Java Stack](https://www.artima.com/insidejvm/ed2/jvm8.html)
 
 
 ---
