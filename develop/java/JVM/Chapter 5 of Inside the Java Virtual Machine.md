@@ -303,7 +303,7 @@ In addition to the items listed previously, the following information must also 
 2. The sizes of the operand stack and local variables sections of the method's stack frame (these are described in a later section of this chapter)
 3. An exception table (this is described in Chapter 17, "Exceptions")
 >1. 
->2. 操作栈，栈帧中的本地变量
+>2. 操作数栈，栈帧中的局部变量
 >3. 异常表？第十七章`Exceptions`会有
 
 #### Class Variables
@@ -587,6 +587,100 @@ Each thread of a running program has its own pc register, or program counter, wh
 
 ---
 ### [The Java Stack](https://www.artima.com/insidejvm/ed2/jvm8.html)
+
+When a new thread is launched, the Java virtual machine creates a new Java stack for the thread. As mentioned earlier, a Java stack stores a thread's state in discrete frames. The Java virtual machine only performs two operations directly on Java Stacks: it pushes and pops frames.
+>启动新线程时，Java虚拟机会为该线程创建新的Java堆栈。 如前所述，Java堆栈将线程的状态存储在离散帧中。 Java虚拟机只在Java堆栈上直接执行两个操作：压栈和出栈。
+
+The method that is currently being executed by a thread is the thread's current method. The stack frame for the current method is the current frame. The class in which the current method is defined is called the current class, and the current class's constant pool is the current constant pool. As it executes a method, the Java virtual machine keeps track of the current class and current constant pool. When the virtual machine encounters instructions that operate on data stored in the stack frame, it performs those operations on the current frame.
+>一个线程正在执行的方法被称为该线程的当前方法。当前方法的栈帧被称为当前栈帧。定义当前方法的类被称为当前类，当前类的常量池被称为当前常量池。当虚拟机执行一个方法的时候，Java虚拟机跟踪当前类和当前常量池。当虚拟机遇到对存储在堆栈帧中的数据进行操作的指令时，它会在当前帧上执行这些操作。
+
+When a thread invokes a Java method, the virtual machine creates and pushes a new frame onto the thread's Java stack. This new frame then becomes the current frame. As the method executes, it uses the frame to store parameters, local variables, intermediate computations, and other data.
+>当一个线程调用一个Java方法，Java虚拟机创建一个新的栈帧，并做压栈处理。这个新的栈帧就是当前栈帧。方法执行的时候，会用到栈帧上的参数，局部变量，中间计算，和其他数据。
+
+A method can complete in either of two ways. If a method completes by returning, it is said to have normal completion. If it completes by throwing an exception, it is said to have abrupt completion. When a method completes, whether normally or abruptly, the Java virtual machine pops and discards the method's stack frame. The frame for the previous method then becomes the current frame.
+>一个方法有两种完成（结束）方式。如果方法完成并返回值，那么就是正常完成。如果方法完成并抛出异常，那么就是异常完成。当一个方法完成，无论是普通还是异常，Java虚拟机出栈那个栈帧，并且丢弃这个栈帧。先前的方法的栈帧变成了当前栈帧。
+
+All the data on a thread's Java stack is private to that thread. There is no way for a thread to access or alter the Java stack of another thread. Because of this, you need never worry about synchronizing multi- threaded access to local variables in your Java programs. When a thread invokes a method, the method's local variables are stored in a frame on the invoking thread's Java stack. Only one thread can ever access those local variables: the thread that invoked the method.
+>Java栈里的所有数据，都是线程私有的。一个线程不能访问或修改其他线程的栈。正因为这个原因，你永远不用担心多线程同部访问局部变量的问题。当一个线程调用一个方法，方法的局部变量会被存在调用方法的线程的栈的栈帧中。只有调用的这个线程可以访问这些局部变量。
+
+Like the method area and heap, the Java stack and stack frames need not be contiguous in memory. Frames could be allocated on a contiguous stack, or they could be allocated on a heap, or some combination of both. The actual data structures used to represent the Java stack and stack frames is a decision of implementation designers. Implementations may allow users or programmers to specify an initial size for Java stacks, as well as a maximum or minimum size.
+>跟方法区和堆一样，Java栈和栈帧在内存中，不需要连续。帧可以在连续堆栈上分配，也可以在堆上分配，或者两者的某种组合。具体怎么实现取决于开发实施者。应该允许用户设置初始值，最大最小值。
+
+---
+### [The Stack Frame](https://www.artima.com/insidejvm/ed2/jvm8.html)
+
+The stack frame has three parts: local variables, operand stack, and frame data. The sizes of the local variables and operand stack, which are measured in words, depend upon the needs of each individual method. These sizes are determined at compile time and included in the class file data for each method. The size of the frame data is implementation dependent.
+>栈帧有三个组成部分：局部变量，操作数栈，栈帧数据。局部变量和操作数栈的大小（用word来做单位）取决于每个方法自己的需求。这个大小在编译的时候就确定了，被包含在类数据中。栈帧数据的大小取决于实现。
+
+When the Java virtual machine invokes a Java method, it checks the class data to determine the number of words required by the method in the local variables and operand stack. It creates a stack frame of the proper size for the method and pushes it onto the Java stack.
+>当Java虚拟机调用一个Java方法，虚拟机检查类数据，来判断这个方法的操作数栈和局部变量需要多少个单位（word）的内存。虚拟机为这个方法创建一个适当大小的站站，然后把栈帧推送到Java栈中。
+
+#### Local Variables
+
+The local variables section of the Java stack frame is organized as a zero-based array of words. Instructions that use a value from the local variables section provide an index into the zero-based array. Values of type int, float, reference, and returnAddress occupy one entry in the local variables array. Values of type byte, short, and char are converted to int before being stored into the local variables. Values of type long and double occupy two consecutive entries in the array.
+>Java堆栈帧的局部变量部分被组织为从零开始的数组（内容是word）。使用了局部变量中的值的指令集，提供了一个这个（从零开始的）数组的索引。int，flout，引用，返回地址，在局部变量数组占据一个entry（单位？）。byte，short，和char会被转化成int，然后存到局部变量里。long和double则会在数组总占据两个连续的entry（单位？）。
+
+To refer to a long or double in the local variables, instructions provide the index of the first of the two consecutive entries occupied by the value. For example, if a long occupies array entries three and four, instructions would refer to that long by index three. All values in the local variables are word-aligned. Dual-entry longs and doubles can start at any index.
+>要从局部变量引用一个long或者double，指令集提供了一个索引，这个索引的值，是这个long或者double占用的两个连续的单位（entries）的两个索引中的第一个。举个例子，如果一个long，在数组的3，4两个位置，那么指令集会提供3这个索引。局部变量中的所有值都是（word/单位）字对齐的。像long和double这样的占据两个单位的，可以从任何指数开始。
+
+The local variables section contains a method's parameters and local variables. Compilers place the parameters into the local variable array first, in the order in which they are declared. Figure 5-9 shows the local variables section for the following two methods:
+>局部变量部分包含方法的参数和局部变量。编译器先把参数放到本地变量数组，按照它们的先后声明顺序。图5-9是以下两个方法的局部变量部分的例子：
+
+    // On CD-ROM in file jvm/ex3/Example3a.java
+    class Example3a {
+    
+        public static int runClassMethod(int i, long l, float f,
+            double d, Object o, byte b) {
+    
+            return 0;
+        }
+    
+        public int runInstanceMethod(char c, double d, short s,
+            boolean b) {
+    
+            return 0;
+        }
+    }
+    
+![Method parameters on the local variables section of a Java stack](https://www.artima.com/insidejvm/ed2/images/fig5-9.gif "Method parameters on the local variables section of a Java stack")
+
+**Figure 5-9. Method parameters on the local variables section of a Java stack.**
+
+Note that Figure 5-9 shows that the first parameter in the local variables for runInstanceMethod() is of type reference, even though no such parameter appears in the source code. This is the hidden this reference passed to every instance method. Instance methods use this reference to access the instance data of the object upon which they were invoked. As you can see by looking at the local variables for runClassMethod() in Figure 5-9, class methods do not receive a hidden this. Class methods are not invoked on objects. You can't directly access a class's instance variables from a class method, because there is no instance associated with the method invocation.
+>注意图5-9里说的，runInstanceMethod()这个方法的局部变量中的第一个参数是引用类型，但是在代码里没有这种参数。这是一个隐藏引用，每个实例方法中都有。实例方法通过这个引用来访问（调用这个方法的）对象中的实例数据。如你所见，图5-9的runClassMethod()的局部变量中没有隐藏引用。因为runClassMethod()是静态方法（也叫做类方法？），类方法不会被对象调用（而是被类调用）。通过类方法，无法直接访问一个类的实例（对象）的变量，因为没有实例与这个方法调用关联（大概理解为静态方法的调用不与类的实例相关联吧）。
+
+Note also that types byte, short, char, and boolean in the source code become ints in the local variables. This is also true of the operand stack. As mentioned earlier, the boolean type is not supported directly by the Java virtual machine. The Java compiler always uses ints to represent boolean values in the local variables or operand stack. Data types byte, short, and char, however, are supported directly by the Java virtual machine. These can be stored on the heap as instance variables or array elements, or in the method area as class variables. When placed into local variables or the operand stack, however, values of type byte, short, and char are converted into ints. They are manipulated as ints while on the stack frame, then converted back into byte, short, or char when stored back into heap or method area.
+>也要注意，源码中的byte，short，char和boolean类型，在局部变量中变成了int类型。在操作数栈中也是这样。之前已经说过，boolean类型没有被Java虚拟机直接支持，在操作数栈和局部变量中，Java编译器总是用int来表示boolean。不过byte，short和char是直接被Java虚拟机支持的。它们可以被存在堆中，作为实例变量/数组元素，或者存在方法区，作为类变量。
+>
+>但是，当他们被加载到局部变量或者操作数栈的时候，还是被转化成int。在栈帧中，它们被当做int来操作，一旦存回堆或者方法区，又会被转化成byte，short或者char。
+
+
+Also note that Object o is passed as a reference to runClassMethod(). In Java, all objects are passed by reference. As all objects are stored on the heap, you will never find an image of an object in the local variables or operand stack, only object references.
+>注意，对象o以引用的形式被传递给runClassMethod()。在Java里，所有的对象在传递的时候，都是以引用的形式存在的。而且所有对象逗存在堆里，你永远不会在局部变量和操作数栈中找到一个对象的镜像，只有对象引用。
+
+Aside from a method's parameters, which compilers must place into the local variables array first and in order of declaration, Java compilers can arrange the local variables array as they wish. Compilers can place the method's local variables into the array in any order, and they can use the same array entry for more than one local variable. For example, if two local variables have limited scopes that don't overlap, such as the i and j local variables in Example3b, compilers are free to use the same array entry for both variables. During the first half of the method, before j comes into scope, entry zero could be used for i. During the second half of the method, after i has gone out of scope, entry zero could be used for j.
+>除了方法的参数，
+
+    // On CD-ROM in file jvm/ex3/Example3b.java
+    class Example3b {
+    
+        public static void runtwoLoops() {
+    
+            for (int i = 0; i < 10; ++i) {
+                System.out.println(i);
+            }
+    
+            for (int j = 9; j >= 0; --j) {
+                System.out.println(j);
+            }
+        }
+    }
+
+As with all the other runtime memory areas, implementation designers can use whatever data structures they deem most appropriate to represent the local variables. The Java virtual machine specification does not indicate how longs and doubles should be split across the two array entries they occupy. Implementations that use a word size of 64 bits could, for example, store the entire long or double in the lower of the two consecutive entries, leaving the higher entry unused.
+
+#### Operand Stack
+#### Frame Data
+#### Possible Implementations of the Java Stack
 
 
 ---
