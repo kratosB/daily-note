@@ -659,7 +659,7 @@ Also note that Object o is passed as a reference to runClassMethod(). In Java, a
 >注意，对象o以引用的形式被传递给runClassMethod()。在Java里，所有的对象在传递的时候，都是以引用的形式存在的。而且所有对象逗存在堆里，你永远不会在局部变量和操作数栈中找到一个对象的镜像，只有对象引用。
 
 Aside from a method's parameters, which compilers must place into the local variables array first and in order of declaration, Java compilers can arrange the local variables array as they wish. Compilers can place the method's local variables into the array in any order, and they can use the same array entry for more than one local variable. For example, if two local variables have limited scopes that don't overlap, such as the i and j local variables in Example3b, compilers are free to use the same array entry for both variables. During the first half of the method, before j comes into scope, entry zero could be used for i. During the second half of the method, after i has gone out of scope, entry zero could be used for j.
->除了方法的参数，
+>除了方法的参数（编译器必须第一时间放到局部变量里，而且要按顺序），Java编译器可以随意安排局部变量数组。编译器可以任意安排方法局部变量在数组中的位置，它们还可以为多个局部变量用同一个数组条目（数组中的同一个元素）。举个例子，如果两个局部变量具有不重叠的有限范围（不明白，大概能猜测），例如下面的Example3b.java的代码中的i和j，编译器可以用同一个数组元素来给这两个变量。在这个方法的前半段，在j进入这个范围之前，第0个元素可以被i使用，在这个方法的后半段，i离开了这个范围，第0个元素可以被j使用。
 
     // On CD-ROM in file jvm/ex3/Example3b.java
     class Example3b {
@@ -677,11 +677,112 @@ Aside from a method's parameters, which compilers must place into the local vari
     }
 
 As with all the other runtime memory areas, implementation designers can use whatever data structures they deem most appropriate to represent the local variables. The Java virtual machine specification does not indicate how longs and doubles should be split across the two array entries they occupy. Implementations that use a word size of 64 bits could, for example, store the entire long or double in the lower of the two consecutive entries, leaving the higher entry unused.
+>跟别的运行时内存区一样，实施设计师可以用任意自己觉得合适的数据结构来表现局部变量。Java虚拟机规范没有说明long和double该怎么被放在两个条目（单元）里。举个例子，使用64位系统（这里一个word单位是64bit大小），实施者可以把long或者double放在第一个条目（单元），然后第二个空着。
 
 #### Operand Stack
+
+Like the local variables, the operand stack is organized as an array of words. But unlike the local variables, which are accessed via array indices, the operand stack is accessed by pushing and popping values. If an instruction pushes a value onto the operand stack, a later instruction can pop and use that value.
+>像局部变量一样，操作数栈也被组织为一个包含word的数组。但是不同的是，局部变量是使用index访问元素的，操作数栈跟Java栈一样，是使用压栈出栈来访问数据的。如果一个指令推送了一个值到操作数栈，那么后面的操作可以弹出并使用这个值。
+
+The virtual machine stores the same data types in the operand stack that it stores in the local variables: int, long, float, double, reference, and returnType. It converts values of type byte, short, and char to int before pushing them onto the operand stack.
+>Java虚拟机存在操作数栈中的数据类型跟局部变量中的一样，int，long，float，double，reference，和返回类型。另外，byte，short和char会被转成int并压栈。
+
+Other than the program counter, which can't be directly accessed by instructions, the Java virtual machine has no registers. The Java virtual machine is stack-based rather than register-based because its instructions take their operands from the operand stack rather than from registers. Instructions can also take operands from other places, such as immediately following the opcode (the byte representing the instruction) in the bytecode stream, or from the constant pool. The Java virtual machine instruction set's main focus of attention, however, is the operand stack.
+>除了无法通过指令直接访问的程序计数器之外，Java虚拟机没有寄存器。Java虚拟机是基于栈的，而不是基于寄存器（程序计数器）的，因为它的指令从操作数堆栈而不是寄存器中获取操作数。指令也可以从其他地方获取操作数，例如紧跟字节码流中的操作码（表示指令的字节）或来自常量池。然而，Java虚拟机指令集的主要关注点是操作数堆栈。
+
+The Java virtual machine uses the operand stack as a work space. Many instructions pop values from the operand stack, operate on them, and push the result. For example, the iadd instruction adds two integers by popping two ints off the top of the operand stack, adding them, and pushing the int result. Here is how a Java virtual machine would add two local variables that contain ints and store the int result in a third local variable:
+>Java虚拟机使用操作数堆栈作为工作空间。许多指令从操作数栈弹出数据，操作这些数据，然后推送结果（到操作数栈）。举个例子，iadd指令从操作数栈中弹出两个int，然后把他们加到一起，然后推送这个int结果到操作数栈。下面这个例子描述了，Java虚拟机如何把两个包含int的局部变量相加，并存储int返回值在第三个局部变量中：
+
+    iload_0    // push the int in local variable 0
+    iload_1    // push the int in local variable 1
+    iadd       // pop two ints, add them, push result
+    istore_2   // pop int, store into local variable 2
+
+In this sequence of bytecodes, the first two instructions, iload_0 and iload_1, push the ints stored in local variable positions zero and one onto the operand stack. The iadd instruction pops those two int values, adds them, and pushes the int result back onto the operand stack. The fourth instruction, istore_2, pops the result of the add off the top of the operand stack and stores it into local variable position two. In Figure 5-10, you can see a graphical depiction of the state of the local variables and operand stack while executing these instructions. In this figure, unused slots of the local variables and operand stack are left blank.
+>在这个字节码序列中，前两个指令iload_0和iload_1，将存储在局部变量位置0和1的整数推入操作数堆栈。iadd指令从操作数栈中弹出两个int，然后把他们加到一起，然后推送这个int结果回到操作数栈。第四个指令，istore_2，弹出之前相加的结果，并把他们存到局部变量位置2。在图5-10中，你可以看到一个图，描述了执行这些指令的时候局部变量和操作数栈的状态。
+
+![Adding two local variables](https://www.artima.com/insidejvm/ed2/images/fig5-10.gif "Adding two local variables")
+
+**Figure 5-10. Adding two local variables.**
+
 #### Frame Data
+
+In addition to the local variables and operand stack, the Java stack frame includes data to support constant pool resolution, normal method return, and exception dispatch. This data is stored in the frame data portion of the Java stack frame.
+>除了局部变量和操作数堆栈之外，Java堆栈帧还包括支持常量池解析，常规方法返回和异常分派的数据。 该数据存储在Java堆栈帧的帧数据部分中。
+
+Many instructions in the Java virtual machine's instruction set refer to entries in the constant pool. Some instructions merely push constant values of type int, long, float, double, or String from the constant pool onto the operand stack. Some instructions use constant pool entries to refer to classes or arrays to instantiate, fields to access, or methods to invoke. Other instructions determine whether a particular object is a descendant of a particular class or interface specified by a constant pool entry.
+>许多Java虚拟机指令集中的指令从常量池中引用条目（单元）。
+>>一些指令只是从常量池，推送int，long，float，double或者string类型的常量，到操作数栈。  
+>>一些指令使用常量池条目（单元），来引用要实例化的类或数组，要访问的字段或要调用的方法。  
+>>其他指令判断一个特定的对象是不是一个由常量池指定的，特定的类或者特定的接口，的后裔。
+
+Whenever the Java virtual machine encounters any of the instructions that refer to an entry in the constant pool, it uses the frame data's pointer to the constant pool to access that information. As mentioned earlier, references to types, fields, and methods in the constant pool are initially symbolic. When the virtual machine looks up a constant pool entry that refers to a class, interface, field, or method, that reference may still be symbolic. If so, the virtual machine must resolve the reference at that time.
+>当Java虚拟机遇到任意从常量池引用条目（单元）的指令时，虚拟机使用栈帧数据的指向常量池的指针，来访问这些信息。
+
+Aside from constant pool resolution, the frame data must assist the virtual machine in processing a normal or abrupt method completion. If a method completes normally (by returning), the virtual machine must restore the stack frame of the invoking method. It must set the pc register to point to the instruction in the invoking method that follows the instruction that invoked the completing method. If the completing method returns a value, the virtual machine must push that value onto the operand stack of the invoking method.
+>
+
+The frame data must also contain some kind of reference to the method's exception table, which the virtual machine uses to process any exceptions thrown during the course of execution of the method. An exception table, which is described in detail in Chapter 17, "Exceptions," defines ranges within the bytecodes of a method that are protected by catch clauses. Each entry in an exception table gives a starting and ending position of the range protected by a catch clause, an index into the constant pool that gives the exception class being caught, and a starting position of the catch clause's code.
+>
+
+When a method throws an exception, the Java virtual machine uses the exception table referred to by the frame data to determine how to handle the exception. If the virtual machine finds a matching catch clause in the method's exception table, it transfers control to the beginning of that catch clause. If the virtual machine doesn't find a matching catch clause, the method completes abruptly. The virtual machine uses the information in the frame data to restore the invoking method's frame. It then rethrows the same exception in the context of the invoking method.
+>
+
+In addition to data to support constant pool resolution, normal method return, and exception dispatch, the stack frame may also include other information that is implementation dependent, such as data to support debugging.
+>
+
 #### Possible Implementations of the Java Stack
 
+Implementation designers can represent the Java stack in whatever way they wish. As mentioned earlier, one potential way to implement the stack is by allocating each frame separately from a heap. As an example of this approach, consider the following class:
+>
+
+    // On CD-ROM in file jvm/ex3/Example3c.java
+    class Example3c {
+    
+        public static void addAndPrint() {
+            double result = addTwoTypes(1, 88.88);
+            System.out.println(result);
+        }
+    
+        public static double addTwoTypes(int i, double d) {
+            return i + d;
+        }
+    }
+    
+Figure 5-11 shows three snapshots of the Java stack for a thread that invokes the addAndPrint() method. In the implementation of the Java virtual machine represented in this figure, each frame is allocated separately from a heap. To invoke the addTwoTypes() method, the addAndPrint() method first pushes an int one and double 88.88 onto its operand stack. It then invokes the addTwoTypes() method.
+>
+
+![Allocating frames from a heap](https://www.artima.com/insidejvm/ed2/images/fig5-11.gif "Allocating frames from a heap")
+
+**Figure 5-11. Allocating frames from a heap.**
+
+The instruction to invoke addTwoTypes() refers to a constant pool entry. The Java virtual machine looks up the entry and resolves it if necessary.
+>
+
+Note that the addAndPrint() method uses the constant pool to identify the addTwoTypes() method, even though it is part of the same class. Like references to fields and methods of other classes, references to the fields and methods of the same class are initially symbolic and must be resolved before they are used.
+>
+
+The resolved constant pool entry points to information in the method area about the addTwoTypes() method. The virtual machine uses this information to determine the sizes required by addTwoTypes() for the local variables and operand stack. In the class file generated by Sun's javac compiler from the JDK 1.1, addTwoTypes() requires three words in the local variables and four words in the operand stack. (As mentioned earlier, the size of the frame data portion is implementation dependent.) The virtual machine allocates enough memory for the addTwoTypes() frame from a heap. It then pops the double and int parameters (88.88 and one) from addAndPrint()'s operand stack and places them into addTwoType()'s local variable slots one and zero.
+>
+
+When addTwoTypes() returns, it first pushes the double return value (in this case, 89.88) onto its operand stack. The virtual machine uses the information in the frame data to locate the stack frame of the invoking method, addAndPrint(). It pushes the double return value onto addAndPrint()'s operand stack and frees the memory occupied by addTwoType()'s frame. It makes addAndPrint()'s frame current and continues executing the addAndPrint() method at the first instruction past the addTwoType() method invocation.
+>
+
+Figure 5-12 shows snapshots of the Java stack of a different virtual machine implementation executing the same methods. Instead of allocating each frame separately from a heap, this implementation allocates frames from a contiguous stack. This approach allows the implementation to overlap the frames of adjacent methods. The portion of the invoking method's operand stack that contains the parameters to the invoked method become the base of the invoked method's local variables. In this example, addAndPrint()'s entire operand stack becomes addTwoType()'s entire local variables section.
+>
+
+![Allocating frames from a contiguous stack](https://www.artima.com/insidejvm/ed2/images/fig5-12.gif "Allocating frames from a contiguous stack")
+
+**Figure 5-12. Allocating frames from a contiguous stack.**
+
+This approach saves memory space because the same memory is used by the calling method to store the parameters as is used by the invoked method to access the parameters. It saves time because the Java virtual machine doesn't have to spend time copying the parameter values from one frame to another.
+>
+
+Note that the operand stack of the current frame is always at the "top" of the Java stack. Although this may be easier to visualize in the contiguous memory implementation of Figure 5-12, it is true no matter how the Java stack is implemented. (As mentioned earlier, in all the graphical images of the stack shown in this book, the stack grows downwards. The "top" of the stack is always shown at the bottom of the picture.) Instructions that push values onto (or pop values off of) the operand stack always operate on the current frame. Thus, pushing a value onto the operand stack can be seen as pushing a value onto the top of the entire Java stack. In the remainder of this book, "pushing a value onto the stack" refers to pushing a value onto the operand stack of the current frame.
+>
+
+One other possible approach to implementing the Java stack is a hybrid of the two approaches shown in Figure 5-11 and Figure 5-12. A Java virtual machine implementation can allocate a chunk of contiguous memory from a heap when a thread starts. In this memory, the virtual machine can use the overlapping frames approach shown in Figure 5-12. If the stack outgrows the contiguous memory, the virtual machine can allocate another chunk of contiguous memory from the heap. It can use the separate frames approach shown in Figure 5-11 to connect the invoking method's frame sitting in the old chunk with the invoked method's frame sitting in the new chunk. Within the new chunk, it can once again use the contiguous memory approach.
+>
 
 ---
 ### [The Method Area](https://www.artima.com/insidejvm/ed2/jvm5.html)
