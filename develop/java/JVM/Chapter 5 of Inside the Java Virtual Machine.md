@@ -425,9 +425,9 @@ When the virtual machine discovers that it hasn't yet loaded a class named "Lava
 > * 虚拟机从导入的类文件的二进制码中提取类Lava的定义，并将信息放入方法区。
 
 The Java virtual machine then replaces the symbolic reference in Volcano's constant pool entry one, which is just the string "Lava", with a pointer to the class data for Lava. If the virtual machine ever has to use Volcano's constant pool entry one again, it won't have to go through the relatively slow process of searching through the method area for class Lava given only a symbolic reference, the string "Lava". It can just use the pointer to more quickly access the class data for Lava. This process of replacing symbolic references with direct references (in this case, a native pointer) is called constant pool resolution. The symbolic reference is resolved into a direct reference by searching through the method area until the referenced entity is found, loading new classes if necessary.
-> * Lava加载完之后，Java虚拟机会把Volcano的线程池条目1（entry one）中的符号引用替换成一个指针，指向Lava的类数据。
+> * Lava加载完之后，Java虚拟机会把Volcano的常量池条目1（entry one）中的符号引用替换成一个指针，指向Lava的类数据。
 >
->如果虚拟机还要使用Volcano的常量池条目1（entry one），它不需要再经历相对比较慢的，在方法区中，根据符号引用（Lava全量类名），搜索Lava类的的过程。Java虚拟机只需要使用指针，就能够怪苏访问Lava的类数据。
+>如果虚拟机还要使用Volcano的常量池条目1（entry one），它不需要再经历相对比较慢的，在方法区中，根据符号引用（Lava全量类名），搜索Lava类的的过程。Java虚拟机只需要使用指针，就能够快速访问Lava的类数据。
 >>这个把符号引用替换成直接引用（在这个例子中是指针）的过程，被叫做常量池分解（resolution）。通过查找方法区，找到引用的实体（必要时加载新的类），把符号引用解析成直接引用。
 
 Finally, the virtual machine is ready to actually allocate memory for a new Lava object. Once again, the virtual machine consults the information stored in the method area. It uses the pointer (which was just put into Volcano's constant pool entry one) to the Lava data (which was just imported into the method area) to find out how much heap space is required by a Lava object.
@@ -717,13 +717,13 @@ Many instructions in the Java virtual machine's instruction set refer to entries
 >>其他指令判断一个特定的对象是不是一个由常量池指定的，特定的类或者特定的接口，的后裔。
 
 Whenever the Java virtual machine encounters any of the instructions that refer to an entry in the constant pool, it uses the frame data's pointer to the constant pool to access that information. As mentioned earlier, references to types, fields, and methods in the constant pool are initially symbolic. When the virtual machine looks up a constant pool entry that refers to a class, interface, field, or method, that reference may still be symbolic. If so, the virtual machine must resolve the reference at that time.
->当Java虚拟机遇到任意从常量池引用条目（单元）的指令时，虚拟机使用栈帧数据的指向常量池的指针，来访问这些信息。
+>当Java虚拟机遇到任意从常量池引用条目（单元）的指令时，虚拟机使用栈帧数据的指向常量池的指针，来访问这些信息。之前提到过的，常量池中对类型（类或接口），字段，方法的引用，是initially symbolic。当Java虚拟机查询引用类，接口，字段或方法的常量池条目（单元）时，引用可能还是象征性的。如果是，则虚拟机必须在那时解析引用。
 
 Aside from constant pool resolution, the frame data must assist the virtual machine in processing a normal or abrupt method completion. If a method completes normally (by returning), the virtual machine must restore the stack frame of the invoking method. It must set the pc register to point to the instruction in the invoking method that follows the instruction that invoked the completing method. If the completing method returns a value, the virtual machine must push that value onto the operand stack of the invoking method.
->
+>除了常量池的解析，帧数据必须帮助虚拟机处理正常或突然的方法完成。如果一个方法正常结束（通过返回），则虚拟机必须还原调用方法的堆栈帧。它必须设置程序计数器，让它指向调用方法中的指令，这个指令紧随 调用完成方法 的那个指令。如果完成方法返回一个值，虚拟机必须推送这个值到调用方法（调用目前这个完成方法的方法）的操作数栈中。
 
 The frame data must also contain some kind of reference to the method's exception table, which the virtual machine uses to process any exceptions thrown during the course of execution of the method. An exception table, which is described in detail in Chapter 17, "Exceptions," defines ranges within the bytecodes of a method that are protected by catch clauses. Each entry in an exception table gives a starting and ending position of the range protected by a catch clause, an index into the constant pool that gives the exception class being caught, and a starting position of the catch clause's code.
->
+>帧数据还必须包含对方法异常表的某些引用。虚拟机使用该引用来处理在方法执行过程中抛出的任何异常。异常表，在第十七章`Exceptions`中有具体介绍，定义了受catch条款保护的方法的字节码的范围（理解下来大概意思是，try{}中间的代码的字节码的范围吧）。异常表中的每一个条目（单元），都包含了catch条款保护的代码的开始位置和结束位置，还包含了被catch的那个异常对应的常量池索引，还包含catch中的代码的开始位置。
 
 When a method throws an exception, the Java virtual machine uses the exception table referred to by the frame data to determine how to handle the exception. If the virtual machine finds a matching catch clause in the method's exception table, it transfers control to the beginning of that catch clause. If the virtual machine doesn't find a matching catch clause, the method completes abruptly. The virtual machine uses the information in the frame data to restore the invoking method's frame. It then rethrows the same exception in the context of the invoking method.
 >
