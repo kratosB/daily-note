@@ -79,16 +79,16 @@ Some runtime data areas are shared among all of an application's threads and oth
 **Figure 5-2. Runtime data areas shared among all threads.**
 
 As each new thread comes into existence, it gets its own pc register (program counter) and Java stack. If the thread is executing a Java method (not a native method), the value of the pc register indicates the next instruction to execute. A thread's Java stack stores the state of Java (not native) method invocations for the thread. The state of a Java method invocation includes its local variables, the parameters with which it was invoked, its return value (if any), and intermediate calculations. The state of native method invocations is stored in an implementation-dependent way in native method stacks, as well as possibly in registers or other implementation-dependent memory areas.
->伴随着每个新线程的出现，它会有一个他自己的pc寄存器（程序计数器）和Java栈。如果线程在执行一个Java方法（不是本地方法），那么pc寄存器（程序计数器）的值表示下一条要执行的指令。该线程的Java栈存储了方法调用（非本地方法）的状态。方法调用的状态包括局部变量，调用的参数，返回值（如果有），以及中间计算。本机方法调用的状态以依赖于实现的方式存储在本机方法堆栈中，也可能存储在寄存器或其他依赖于实现的存储区域中。
+>伴随着每个新线程的出现，它会有一个他自己的pc寄存器（程序计数器）和Java堆栈。如果线程在执行一个Java方法（不是本地方法），那么pc寄存器（程序计数器）的值表示下一条要执行的指令。该线程的Java堆栈存储了方法调用（非本地方法）的状态。方法调用的状态包括局部变量，调用的参数，返回值（如果有），以及中间计算。本机方法调用的状态以依赖于实现的方式存储在本机方法堆栈中，也可能存储在寄存器或其他依赖于实现的存储区域中。
 
 The Java stack is composed of stack frames (or frames). A stack frame contains the state of one Java method invocation. When a thread invokes a method, the Java virtual machine pushes a new frame onto that thread's Java stack. When the method completes, the virtual machine pops and discards the frame for that method.
->Java栈由栈帧组成。一个栈帧包含一个Java方法调用的状态。当一个线程调用一个方法，虚拟机会push一个新的栈帧到该线程的Java栈中，当方法结束的时候，虚拟机会pop并丢弃这个方法对应的栈帧。
+>Java堆栈由栈帧组成。一个栈帧包含一个Java方法调用的状态。当一个线程调用一个方法，虚拟机会push一个新的栈帧到该线程的Java堆栈中，当方法结束的时候，虚拟机会pop并丢弃这个方法对应的栈帧。
 
 The Java virtual machine has no registers to hold intermediate data values. The instruction set uses the Java stack for storage of intermediate data values.This approach was taken by Java's designers to keep the Java virtual machine's instruction set compact and to facilitate implementation on architectures with few or irregular general purpose registers. In addition, the stack-based architecture of the Java virtual machine's instruction set facilitates the code optimization work done by just-in-time and dynamic compilers that operate at run-time in some virtual machine implementations.
->Java虚拟机没有用于保存中间数据值的寄存器。 指令集使用Java栈存储中间数据值。这个方法被Java开发者用来保持Java虚拟机的指令集更紧凑，并便于在具有少量或不规则通用寄存器的体系结构上实现。除此之外，Java虚拟机指令集的这种基于栈的体系结构，有助于在有些虚拟机实现中的实时和动态编译的代码精简工作的完成。
+>Java虚拟机没有用于保存中间数据值的寄存器。 指令集使用Java堆栈存储中间数据值。这个方法被Java开发者用来保持Java虚拟机的指令集更紧凑，并便于在具有少量或不规则通用寄存器的体系结构上实现。除此之外，Java虚拟机指令集的这种基于栈的体系结构，有助于在有些虚拟机实现中的实时和动态编译的代码精简工作的完成。
 
 See Figure 5-3 for a graphical depiction of the memory areas the Java virtual machine creates for each thread. These areas are private to the owning thread. No thread can access the pc register or Java stack of another thread.
->图5-3是Java虚拟机为每个线程创建内存区域的图。这些内存区市每个线程私有的，没有线程能访问其他线程的程序计数器和Java栈。
+>图5-3是Java虚拟机为每个线程创建内存区域的图。这些内存区市每个线程私有的，没有线程能访问其他线程的程序计数器和Java堆栈。
 
 ![Runtime data areas exclusive to each thread](https://www.artima.com/insidejvm/ed2/images/fig5-3.gif "Runtime data areas exclusive to each thread")
 
@@ -98,7 +98,7 @@ Figure 5-3 shows a snapshot of a virtual machine instance in which three threads
 >图5-3展示了一个“Java虚拟机实例执行3个线程”的切片。在这个切片中，线程1和线程2在执行Java方法，线程3在执行本地方法。
 
 In Figure 5-3, as in all graphical depictions of the Java stack in this book, the stacks are shown growing downwards. The "top" of each stack is shown at the bottom of the figure. Stack frames for currently executing methods are shown in a lighter shade. For threads that are currently executing a Java method, the pc register indicates the next instruction to execute. In Figure 5-3, such pc registers (the ones for threads one and two) are shown in a lighter shade. Because thread three is currently executing a native method, the contents of its pc register--the one shown in dark gray--is undefined.
->在图5-3中，与本书中Java栈的所有图形描述一样，栈显示为向下增长。 每个栈的“顶部”显示在图的底部。 当前执行方法的栈帧以较浅的阴影显示。 对于当前正在执行Java方法的线程，pc寄存器指示要执行的下一条指令。 在图5-3中，这些pc寄存器（线程1和2的寄存器）以较浅的阴影显示。 由于线程3当前正在执行本机方法，因此其pc寄存器的内容（以深灰色显示的内容）未定义。
+>在图5-3中，与本书中Java堆栈的所有图形描述一样，栈显示为向下增长。 每个栈的“顶部”显示在图的底部。 当前执行方法的栈帧以较浅的阴影显示。 对于当前正在执行Java方法的线程，pc寄存器指示要执行的下一条指令。 在图5-3中，这些pc寄存器（线程1和2的寄存器）以较浅的阴影显示。 由于线程3当前正在执行本机方法，因此其pc寄存器的内容（以深灰色显示的内容）未定义。
 
 ---
 ### [Data Types](https://www.artima.com/insidejvm/ed2/jvm3.html)
@@ -279,6 +279,7 @@ This data is described in the following sections.
 
 For each type it loads, a Java virtual machine must store a constant pool. A constant pool is an ordered set of constants used by the type, including literals (string, integer, and floating point constants) and symbolic references to types, fields, and methods. Entries in the constant pool are referenced by index, much like the elements of an array. Because it holds symbolic references to all types, fields, and methods used by a type, the constant pool plays a central role in the dynamic linking of Java programs. The constant pool is described in more detail later in this chapter and in Chapter 6, "The Java Class File."
 >常量池是一个有序的常量集，包括文字（字符串，整数，浮点常量），类型/字段/方法的符号引用。常量池中的数据跟数组很相似，是由索引来引用的。因为常量池包含所有类型/字段/方法的符号引用，所以常量池在Java程序的动态链接中起着核心作用。 常量池将在本章后面和第6章`The Java Class File.`中详细介绍。
+>> 常量池主要用于存放两大类常量：字面量(Literal)和符号引用量(Symbolic References)，字面量很好理解，符号引用就是1. 类和接口的全限定名。 2. 字段名称和描述符。 3. 方法名称和描述符。
 
 #### Field Information
 
@@ -601,10 +602,10 @@ A method can complete in either of two ways. If a method completes by returning,
 >一个方法有两种完成（结束）方式。如果方法完成并返回值，那么就是正常完成。如果方法完成并抛出异常，那么就是异常完成。当一个方法完成，无论是普通还是异常，Java虚拟机出栈那个栈帧，并且丢弃这个栈帧。先前的方法的栈帧变成了当前栈帧。
 
 All the data on a thread's Java stack is private to that thread. There is no way for a thread to access or alter the Java stack of another thread. Because of this, you need never worry about synchronizing multi- threaded access to local variables in your Java programs. When a thread invokes a method, the method's local variables are stored in a frame on the invoking thread's Java stack. Only one thread can ever access those local variables: the thread that invoked the method.
->Java栈里的所有数据，都是线程私有的。一个线程不能访问或修改其他线程的栈。正因为这个原因，你永远不用担心多线程同部访问局部变量的问题。当一个线程调用一个方法，方法的局部变量会被存在调用方法的线程的栈的栈帧中。只有调用的这个线程可以访问这些局部变量。
+>Java堆栈里的所有数据，都是线程私有的。一个线程不能访问或修改其他线程的栈。正因为这个原因，你永远不用担心多线程同部访问局部变量的问题。当一个线程调用一个方法，方法的局部变量会被存在调用方法的线程的栈的栈帧中。只有调用的这个线程可以访问这些局部变量。
 
 Like the method area and heap, the Java stack and stack frames need not be contiguous in memory. Frames could be allocated on a contiguous stack, or they could be allocated on a heap, or some combination of both. The actual data structures used to represent the Java stack and stack frames is a decision of implementation designers. Implementations may allow users or programmers to specify an initial size for Java stacks, as well as a maximum or minimum size.
->跟方法区和堆一样，Java栈和栈帧在内存中，不需要连续。帧可以在连续堆栈上分配，也可以在堆上分配，或者两者的某种组合。具体怎么实现取决于开发实施者。应该允许用户设置初始值，最大最小值。
+>跟方法区和堆一样，Java堆栈和栈帧在内存中，不需要连续。帧可以在连续堆栈上分配，也可以在堆上分配，或者两者的某种组合。具体怎么实现取决于开发实施者。应该允许用户设置初始值，最大最小值。
 
 ---
 ### [The Stack Frame](https://www.artima.com/insidejvm/ed2/jvm8.html)
@@ -613,7 +614,7 @@ The stack frame has three parts: local variables, operand stack, and frame data.
 >栈帧有三个组成部分：局部变量，操作数栈，栈帧数据。局部变量和操作数栈的大小（用word来做单位）取决于每个方法自己的需求。这个大小在编译的时候就确定了，被包含在类数据中。栈帧数据的大小取决于实现。
 
 When the Java virtual machine invokes a Java method, it checks the class data to determine the number of words required by the method in the local variables and operand stack. It creates a stack frame of the proper size for the method and pushes it onto the Java stack.
->当Java虚拟机调用一个Java方法，虚拟机检查类数据，来判断这个方法的操作数栈和局部变量需要多少个单位（word）的内存。虚拟机为这个方法创建一个适当大小的站站，然后把栈帧推送到Java栈中。
+>当Java虚拟机调用一个Java方法，虚拟机检查类数据，来判断这个方法的操作数栈和局部变量需要多少个单位（word）的内存。虚拟机为这个方法创建一个适当大小的站站，然后把栈帧推送到Java堆栈中。
 
 #### Local Variables
 
@@ -682,7 +683,7 @@ As with all the other runtime memory areas, implementation designers can use wha
 #### Operand Stack
 
 Like the local variables, the operand stack is organized as an array of words. But unlike the local variables, which are accessed via array indices, the operand stack is accessed by pushing and popping values. If an instruction pushes a value onto the operand stack, a later instruction can pop and use that value.
->像局部变量一样，操作数栈也被组织为一个包含word的数组。但是不同的是，局部变量是使用index访问元素的，操作数栈跟Java栈一样，是使用压栈出栈来访问数据的。如果一个指令推送了一个值到操作数栈，那么后面的操作可以弹出并使用这个值。
+>像局部变量一样，操作数栈也被组织为一个包含word的数组。但是不同的是，局部变量是使用index访问元素的，操作数栈跟Java堆栈一样，是使用压栈出栈来访问数据的。如果一个指令推送了一个值到操作数栈，那么后面的操作可以弹出并使用这个值。
 
 The virtual machine stores the same data types in the operand stack that it stores in the local variables: int, long, float, double, reference, and returnType. It converts values of type byte, short, and char to int before pushing them onto the operand stack.
 >Java虚拟机存在操作数栈中的数据类型跟局部变量中的一样，int，long，float，double，reference，和返回类型。另外，byte，short和char会被转成int并压栈。
@@ -723,18 +724,18 @@ Aside from constant pool resolution, the frame data must assist the virtual mach
 >除了常量池的解析，帧数据必须帮助虚拟机处理正常或突然的方法完成。如果一个方法正常结束（通过返回），则虚拟机必须还原调用方法的堆栈帧。它必须设置程序计数器，让它指向调用方法中的指令，这个指令紧随 调用完成方法 的那个指令。如果完成方法返回一个值，虚拟机必须推送这个值到调用方法（调用目前这个完成方法的方法）的操作数栈中。
 
 The frame data must also contain some kind of reference to the method's exception table, which the virtual machine uses to process any exceptions thrown during the course of execution of the method. An exception table, which is described in detail in Chapter 17, "Exceptions," defines ranges within the bytecodes of a method that are protected by catch clauses. Each entry in an exception table gives a starting and ending position of the range protected by a catch clause, an index into the constant pool that gives the exception class being caught, and a starting position of the catch clause's code.
->帧数据还必须包含对方法异常表的某些引用。虚拟机使用该引用来处理在方法执行过程中抛出的任何异常。异常表，在第十七章`Exceptions`中有具体介绍，定义了受catch条款保护的方法的字节码的范围（理解下来大概意思是，try{}中间的代码的字节码的范围吧）。异常表中的每一个条目（单元），都包含了catch条款保护的代码的开始位置和结束位置，还包含了被catch的那个异常对应的常量池索引，还包含catch中的代码的开始位置。
+>帧数据还必须包含对方法异常表的某些引用。虚拟机使用该引用来处理在方法执行过程中抛出的任何异常。异常表，在第十七章`Exceptions`中有具体介绍，定义了受catch代码保护的方法的字节码的范围（理解下来大概意思是，try{}中间的代码的字节码的范围吧）。异常表中的每一个条目（单元），都包含了catch代码保护的代码的开始位置和结束位置，还包含了被catch的那个异常对应的常量池索引，还包含catch中的代码的开始位置。
 
 When a method throws an exception, the Java virtual machine uses the exception table referred to by the frame data to determine how to handle the exception. If the virtual machine finds a matching catch clause in the method's exception table, it transfers control to the beginning of that catch clause. If the virtual machine doesn't find a matching catch clause, the method completes abruptly. The virtual machine uses the information in the frame data to restore the invoking method's frame. It then rethrows the same exception in the context of the invoking method.
->
+>当一个方法抛出一个异常时，Java虚拟机用帧数据引用的异常表来判断如何处理这个异常。如果虚拟机在这个方法的异常表中找到一个匹配的catch代码，虚拟机会把控制权转移到这个catch代码的开头。如果虚拟机找不到匹配的catch代码，这个方法就会突然停止。虚拟机使用帧数据中的信息来恢复调用方法的帧，然后它在调用方法的内容中重新抛出同样的异常。
 
 In addition to data to support constant pool resolution, normal method return, and exception dispatch, the stack frame may also include other information that is implementation dependent, such as data to support debugging.
->
+>除了支持常量池解析的数据，普通方法返回，异常调度，栈帧还包含其他信息，例如支持debug的数据。
 
 #### Possible Implementations of the Java Stack
 
 Implementation designers can represent the Java stack in whatever way they wish. As mentioned earlier, one potential way to implement the stack is by allocating each frame separately from a heap. As an example of this approach, consider the following class:
->
+>实现设计者可以使用任意它们喜欢的方式来实现Java堆栈。就像之前提到过的，一个潜在的途径实现栈，是从堆中分别分配每个帧。下面是一个例子。
 
     // On CD-ROM in file jvm/ex3/Example3c.java
     class Example3c {
@@ -750,33 +751,39 @@ Implementation designers can represent the Java stack in whatever way they wish.
     }
     
 Figure 5-11 shows three snapshots of the Java stack for a thread that invokes the addAndPrint() method. In the implementation of the Java virtual machine represented in this figure, each frame is allocated separately from a heap. To invoke the addTwoTypes() method, the addAndPrint() method first pushes an int one and double 88.88 onto its operand stack. It then invokes the addTwoTypes() method.
->
+>图5-11是一个调用addAndPrint()方法的线程的Java堆栈的切片。每个栈帧逗从堆中独立分配空间。为了调用addTwoTypes()方法，addAndPrint()方法先推送了一个int=1的值和一个double=88.88的值到自己的操作数栈。然后它调用addTwoTypes()方法。
 
 ![Allocating frames from a heap](https://www.artima.com/insidejvm/ed2/images/fig5-11.gif "Allocating frames from a heap")
 
 **Figure 5-11. Allocating frames from a heap.**
 
 The instruction to invoke addTwoTypes() refers to a constant pool entry. The Java virtual machine looks up the entry and resolves it if necessary.
->
+>调用addTwoTypes()的指令引用了一个常量池条目（单元）。虚拟机会查找条目（单元），并在必要时解析它。
 
 Note that the addAndPrint() method uses the constant pool to identify the addTwoTypes() method, even though it is part of the same class. Like references to fields and methods of other classes, references to the fields and methods of the same class are initially symbolic and must be resolved before they are used.
->
+>注意，addAndPrint()方法使用常量池来识别addTwoTypes()方法，虽然它也是相同类中的一部分。就像引用其他类的字段和方法一样，引用同一个类的字段和方法，也是象征性初始化的，它们在被使用的时候需要被解析。
 
 The resolved constant pool entry points to information in the method area about the addTwoTypes() method. The virtual machine uses this information to determine the sizes required by addTwoTypes() for the local variables and operand stack. In the class file generated by Sun's javac compiler from the JDK 1.1, addTwoTypes() requires three words in the local variables and four words in the operand stack. (As mentioned earlier, the size of the frame data portion is implementation dependent.) The virtual machine allocates enough memory for the addTwoTypes() frame from a heap. It then pops the double and int parameters (88.88 and one) from addAndPrint()'s operand stack and places them into addTwoType()'s local variable slots one and zero.
->
+>对常量池条目（单元）的解析，指向方法区中addTwoTypes()方法的信息。虚拟机使用这些信息来判断addTwoTypes()的局部变量和操作数栈需要的内存大小。
+> 1. 在Sun的JDK1.1里面，addTwoTypes()这个方法需要3个单位（word）大小的局部变量和4个单位（word）大小的操作数栈。（如前所述，帧数据部分的大小取决于实现。）
+> 2. 虚拟机从堆中（`为什么是堆，不是栈吗？？？？？可能是JDK1.1里面是在堆，后面是栈的意思？`）给addTwoTypes()分配足够的内存。
+> 3. 然后从addAndPrint()方法的操作数栈中弹出int=1和double=88.88这两个值，并把他们放进addTwoType()方法的局部变量的第一个格子（单位/插槽）和第二个格子。
 
 When addTwoTypes() returns, it first pushes the double return value (in this case, 89.88) onto its operand stack. The virtual machine uses the information in the frame data to locate the stack frame of the invoking method, addAndPrint(). It pushes the double return value onto addAndPrint()'s operand stack and frees the memory occupied by addTwoType()'s frame. It makes addAndPrint()'s frame current and continues executing the addAndPrint() method at the first instruction past the addTwoType() method invocation.
->
+> 1. 当addTwoTypes()方法返回时，它先把返回值（这个例子中是89.88）推进它自己的操作数栈。
+> 2. 虚拟机用帧数据中的信息来定位调用方法（addAndPrint()方法）的栈帧。
+> 3. 虚拟机推送double返回值到addAndPrint()方法的操作数栈，并且释放addTwoType()的栈帧占据的内存。
+> 4. 虚拟机把addAndPrint()方法的栈帧当成当前栈帧，并在addTwoType()方法被调用的那句指令之后的位置，继续执行addAndPrint()方法
 
 Figure 5-12 shows snapshots of the Java stack of a different virtual machine implementation executing the same methods. Instead of allocating each frame separately from a heap, this implementation allocates frames from a contiguous stack. This approach allows the implementation to overlap the frames of adjacent methods. The portion of the invoking method's operand stack that contains the parameters to the invoked method become the base of the invoked method's local variables. In this example, addAndPrint()'s entire operand stack becomes addTwoType()'s entire local variables section.
->
+>图5-12展示了，另外一种不同的虚拟机执行同样的方法时，Java堆栈的切片。此实现不是从堆中单独分配每个帧，而是从连续的堆栈中分配帧。该方法允许实现与相邻方法的帧重叠。调用方法的操作数栈的，含有被调用方法需要的参数的，那一部分，变成了被调用方法的局部变量的基础。在这个例子中，addAndPrint()方法的整个操作数栈，就是addTwoType()的整个局部变量部分。
 
 ![Allocating frames from a contiguous stack](https://www.artima.com/insidejvm/ed2/images/fig5-12.gif "Allocating frames from a contiguous stack")
 
 **Figure 5-12. Allocating frames from a contiguous stack.**
 
 This approach saves memory space because the same memory is used by the calling method to store the parameters as is used by the invoked method to access the parameters. It saves time because the Java virtual machine doesn't have to spend time copying the parameter values from one frame to another.
->
+>这种方法节省了内存空间，因为相同的内存被重复利用。
 
 Note that the operand stack of the current frame is always at the "top" of the Java stack. Although this may be easier to visualize in the contiguous memory implementation of Figure 5-12, it is true no matter how the Java stack is implemented. (As mentioned earlier, in all the graphical images of the stack shown in this book, the stack grows downwards. The "top" of the stack is always shown at the bottom of the picture.) Instructions that push values onto (or pop values off of) the operand stack always operate on the current frame. Thus, pushing a value onto the operand stack can be seen as pushing a value onto the top of the entire Java stack. In the remainder of this book, "pushing a value onto the stack" refers to pushing a value onto the operand stack of the current frame.
 >
