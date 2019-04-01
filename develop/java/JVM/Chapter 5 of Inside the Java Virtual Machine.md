@@ -1,7 +1,7 @@
 ### Chapter 5 of [Inside the Java Virtual Machine](https://www.artima.com/insidejvm/ed2/index.html)
-## [The Java Virtual Machine](https://www.artima.com/insidejvm/ed2/jvm.html)
+# [The Java Virtual Machine](https://www.artima.com/insidejvm/ed2/jvm.html)
 
-### [What is a Java Virtual Machine?](https://www.artima.com/insidejvm/ed2/jvm.html)
+## [What is a Java Virtual Machine?](https://www.artima.com/insidejvm/ed2/jvm.html)
 
 To understand the Java virtual machine you must first be aware that you may be talking about any of three different things when you say "Java virtual machine." You may be speaking of:
 
@@ -14,7 +14,7 @@ The abstract specification is a concept, described in detail in the book: _The J
 Each Java application runs inside a runtime instance of some concrete implementation of the abstract specification of the Java virtual machine. In this book, the term "Java virtual machine" is used in all three of these senses. Where the intended sense is not clear from the context, one of the terms "specification," "implementation," or "instance" is added to the term "Java virtual machine".
 
 ---
-### [The Lifetime of a Java Virtual Machine](https://www.artima.com/insidejvm/ed2/jvm.html)
+## [The Lifetime of a Java Virtual Machine](https://www.artima.com/insidejvm/ed2/jvm.html)
 
 A runtime instance of the Java virtual machine has a clear mission in life: to run one Java application. When a Java application starts, a runtime instance is born. When the application completes, the instance dies. If you start three Java applications at the same time, on the same computer, using the same concrete implementation, you'll get three Java virtual machine instances. Each Java application runs inside its own Java virtual machine.
 
@@ -51,7 +51,7 @@ A Java application continues to execute (the virtual machine instance continues 
 In the Echo application previous, the main() method doesn't invoke any other threads. After it prints out the command line arguments, main() returns. This terminates the application's only non-daemon thread, which causes the virtual machine instance to exit.
 
 ---
-### [The Architecture of the Java Virtual Machine](https://www.artima.com/insidejvm/ed2/jvm2.html)
+## [The Architecture of the Java Virtual Machine](https://www.artima.com/insidejvm/ed2/jvm2.html)
 
 In the Java virtual machine specification, the behavior of a virtual machine instance is described in terms of subsystems, memory areas, data types, and instructions. These components describe an abstract inner architecture for the abstract Java virtual machine. The purpose of these components is not so much to dictate an inner architecture for implementations. It is more to provide a way to strictly define the external behavior of implementations. The specification defines the required behavior of any Java virtual machine implementation in terms of these abstract components and their interactions.
 >在Java虚拟机规范中，虚拟机实例的行为被定义为子系统，内存区域，数据类型和指令。
@@ -783,16 +783,202 @@ Figure 5-12 shows snapshots of the Java stack of a different virtual machine imp
 **Figure 5-12. Allocating frames from a contiguous stack.**
 
 This approach saves memory space because the same memory is used by the calling method to store the parameters as is used by the invoked method to access the parameters. It saves time because the Java virtual machine doesn't have to spend time copying the parameter values from one frame to another.
->这种方法节省了内存空间，因为相同的内存被重复利用。
+>这种方法节省了内存空间，因为相同的内存被重复利用。这种方法还节省了时间，因为Java虚拟机不用花时间在栈帧之间复制参数了。
 
 Note that the operand stack of the current frame is always at the "top" of the Java stack. Although this may be easier to visualize in the contiguous memory implementation of Figure 5-12, it is true no matter how the Java stack is implemented. (As mentioned earlier, in all the graphical images of the stack shown in this book, the stack grows downwards. The "top" of the stack is always shown at the bottom of the picture.) Instructions that push values onto (or pop values off of) the operand stack always operate on the current frame. Thus, pushing a value onto the operand stack can be seen as pushing a value onto the top of the entire Java stack. In the remainder of this book, "pushing a value onto the stack" refers to pushing a value onto the operand stack of the current frame.
->
+>注意，当前栈帧的操作数栈永远在Java堆栈的最上面。（之前已经提到过，这本书里面所有的Java堆栈的图片，堆栈都是向下增长的，所以“最上面”其实就是图片的最下面）推送数值到操作数栈的指令，永远在当前栈帧操作。因此，推送一个数据到操作数栈，可以被理解为推送数据到整个Java堆栈顶部。在本书的其余部分中，“将值推入堆栈”是指将值推送到当前帧的操作数堆栈。
 
 One other possible approach to implementing the Java stack is a hybrid of the two approaches shown in Figure 5-11 and Figure 5-12. A Java virtual machine implementation can allocate a chunk of contiguous memory from a heap when a thread starts. In this memory, the virtual machine can use the overlapping frames approach shown in Figure 5-12. If the stack outgrows the contiguous memory, the virtual machine can allocate another chunk of contiguous memory from the heap. It can use the separate frames approach shown in Figure 5-11 to connect the invoking method's frame sitting in the old chunk with the invoked method's frame sitting in the new chunk. Within the new chunk, it can once again use the contiguous memory approach.
->
+>另一个可能的实现Java堆栈的方法是一种混合前面图5-11和图5-12两种方法的混合版。当线程启动时，Java虚拟机实现可以从堆中分配一块连续内存。在这个内存中，虚拟机可以像图5-12一样重叠栈帧的方法。如果堆栈内存超过了这个连续的内存，那么Java虚拟机另外再从堆中分配一个连续的内存。然后用图5-11中的方式连接这两个内存块。
 
 ---
-### [The Method Area](https://www.artima.com/insidejvm/ed2/jvm5.html)
+### [Native Method Stacks](https://www.artima.com/insidejvm/ed2/jvm9.html)
+
+In addition to all the runtime data areas defined by the Java virtual machine specification and described previously, a running Java application may use other data areas created by or for native methods. When a thread invokes a native method, it enters a new world in which the structures and security restrictions of the Java virtual machine no longer hamper its freedom. A native method can likely access the runtime data areas of the virtual machine (it depends upon the native method interface), but can also do anything else it wants. It may use registers inside the native processor, allocate memory on any number of native heaps, or use any kind of stack.
+>除了之前描述过的Java虚拟机规范定义的Java运行时数据区，一个Java应用程序还可能需要其他为本地方法创建的数据区。当一个线程调用本地方法，它进入了一个新的世界，在这里Java虚拟机的结构和安全限制不再妨碍其自由。本机方法可能会访问虚拟机的运行时数据区域（它取决于本机方法接口），但也可以执行其他任何需要的操作。它可以使用本机处理器内的寄存器，在任意数量的本机堆上分配内存，或使用任何类型的堆栈。
+
+Native methods are inherently implementation dependent. Implementation designers are free to decide what mechanisms they will use to enable a Java application running on their implementation to invoke native methods.
+>本机方法本质上依赖于实现（本机实现？）。实现设计者可以自行决定他们要用哪种机制来让他们的虚拟机上运行的Java应用调用本地方法。
+
+Any native method interface will use some kind of native method stack. When a thread invokes a Java method, the virtual machine creates a new frame and pushes it onto the Java stack. When a thread invokes a native method, however, that thread leaves the Java stack behind. Instead of pushing a new frame onto the thread's Java stack, the Java virtual machine will simply dynamically link to and directly invoke the native method. One way to think of it is that the Java virtual machine is dynamically extending itself with native code. It is as if the Java virtual machine implementation is just calling another (dynamically linked) method within itself, at the behest of the running Java program.
+>任意本地方法接口都会使用一些本地方法栈。当一个线程调用了一个Java方法，Java虚拟机创建一个新的栈帧，并把它推送到Java堆栈中。但是，当一个线程调用一个本地方法的时候，该线程将Java堆栈留在后面（抛诸脑后？）。不再推送一个新的栈帧到该线程的Java堆栈，Java虚拟机只会简单的动态的链接，并调用本地方法。Java虚拟机使用本地代码动态扩展自己。就好像Java虚拟机实现只是在运行Java程序的命令下调用其自身内的另一个（动态链接）方法。
+
+If an implementation's native method interface uses a C-linkage model, then the native method stacks are C stacks. When a C program invokes a C function, the stack operates in a certain way. The arguments to the function are pushed onto the stack in a certain order. The return value is passed back to the invoking function in a certain way. This would be the behavior of the of native method stacks in that implementation.
+
+A native method interface will likely (once again, it is up to the designers to decide) be able to call back into the Java virtual machine and invoke a Java method. In this case, the thread leaves the native method stack and enters another Java stack.
+>一个本地方法接口很可能（取决于虚拟机实现者的意愿）能够回调Java虚拟机，并调用一个Java方法。在这种情况下，线程离开本地方法栈，进入拎一个Java堆栈。
+
+Figure 5-13 shows a graphical depiction of a thread that invokes a native method that calls back into the virtual machine to invoke another Java method. This figure shows the full picture of what a thread can expect inside the Java virtual machine. A thread may spend its entire lifetime executing Java methods, working with frames on its Java stack. Or, it may jump back and forth between the Java stack and native method stacks.
+>图5-13是一个线程调用本地方法，并回调Java虚拟机和另一个Java方法的图例。这个图描绘了一个线程在Java虚拟机中可能会有的回路的全貌。线程可能会花费整个生命周期来执行Java方法，并在其Java堆栈上使用栈帧。或者，它可能在Java堆栈和本机方法堆栈之间来回跳转。
+
+![The stack for a thread that invokes Java and native methods](https://www.artima.com/insidejvm/ed2/images/fig5-13.gif "The stack for a thread that invokes Java and native methods")
+
+**Figure 5-13. The stack for a thread that invokes Java and native methods.**
+
+As depicted in Figure 5-13, a thread first invoked two Java methods, the second of which invoked a native method. This act caused the virtual machine to use a native method stack. In this figure, the native method stack is shown as a finite amount of contiguous memory space. Assume it is a C stack. The stack area used by each C-linkage function is shown in gray and bounded by a dashed line. The first C-linkage function, which was invoked as a native method, invoked another C-linkage function. The second C-linkage function invoked a Java method through the native method interface. This Java method invoked another Java method, which is the current method shown in the figure.
+>跟图5-13中描绘的一样，一个线程先调用了两个Java方法，其中第二个Java方法调用了本地方法。这种操作导致虚拟机使用了本地方法栈。（在这个图中，本地方法栈是一个无限大的连续内存空间。）假设本地方法栈是一个c堆栈。省略一大段，感觉没啥用。第二个c连锁方法通过本地方法接口调用了一个Java方法。这个Java方法调用了另一个Java方法。
+
+As with the other runtime memory areas, the memory they occupied by native method stacks need not be of a fixed size. It can expand and contract as needed by the running application. Implementations may allow users or programmers to specify an initial size for the method area, as well as a maximum or minimum size.
+
+---
+### [Execution Engine](https://www.artima.com/insidejvm/ed2/jvm10.html)
+
+At the core of any Java virtual machine implementation is its execution engine. In the Java virtual machine specification, the behavior of the execution engine is defined in terms of an instruction set. For each instruction, the specification describes in detail what an implementation should do when it encounters the instruction as it executes bytecodes, but says very little about how. As mentioned in previous chapters, implementation designers are free to decide how their implementations will execute bytecodes. Their implementations can interpret, just-in-time compile, execute natively in silicon, use a combination of these, or dream up some brand new technique.
+>Java虚拟机的核心是执行引擎。执行引擎的行为是根据指令集定义的。规范详细描述了当指令集的指令执行字节码的时候，一个实现该做什么，但是几乎没有规定怎么实现。实施设计师可自行选择怎么实现。
+
+Similar to the three senses of the term "Java virtual machine" described at the beginning of this chapter, the term "execution engine" can also be used in any of three senses: an abstract specification, a concrete implementation, or a runtime instance. The abstract specification defines the behavior of an execution engine in terms of the instruction set. Concrete implementations, which may use a variety of techniques, are either software, hardware, or a combination of both. A runtime instance of an execution engine is a thread.
+>执行引擎可以用在以下三个场景，抽象规范，具体实现，和运行实例。抽象规范 - 指令集，具体实现 - 软/硬件和结合，运行实例 - 线程。
+
+Each thread of a running Java application is a distinct instance of the virtual machine's execution engine. From the beginning of its lifetime to the end, a thread is either executing bytecodes or native methods. A thread may execute bytecodes directly, by interpreting or executing natively in silicon, or indirectly, by just- in-time compiling and executing the resulting native code. A Java virtual machine implementation may use other threads invisible to the running application, such as a thread that performs garbage collection. Such threads need not be "instances" of the implementation's execution engine. All threads that belong to the running application, however, are execution engines in action.
+>运行的Java应用的每个线程都是虚拟机执行引擎的一个不同的实例。它的整个生命周期，线程不是在执行字节码，就是本地方法。线程可以直接执行字节码，也可以间接执行。Java虚拟机实现可以使用正在运行的应用程序的不可见的其他线程，例如执行垃圾收集的线程。
+
+#### The Instruction Set
+
+A method's bytecode stream is a sequence of instructions for the Java virtual machine. Each instruction consists of a one-byte opcode followed by zero or more operands. The opcode indicates the operation to be performed. Operands supply extra information needed by the Java virtual machine to perform the operation specified by the opcode. The opcode itself indicates whether or not it is followed by operands, and the form the operands (if any) take. Many Java virtual machine instructions take no operands, and therefore consist only of an opcode. Depending upon the opcode, the virtual machine may refer to data stored in other areas in addition to (or instead of) operands that trail the opcode. When it executes an instruction, the virtual machine may use entries in the current constant pool, entries in the current frame's local variables, or values sitting on the top of the current frame's operand stack.
+>
+
+The abstract execution engine runs by executing bytecodes one instruction at a time. This process takes place for each thread (execution engine instance) of the application running in the Java virtual machine. An execution engine fetches an opcode and, if that opcode has operands, fetches the operands. It executes the action requested by the opcode and its operands, then fetches another opcode. Execution of bytecodes continues until a thread completes either by returning from its starting method or by not catching a thrown exception.
+>
+
+From time to time, the execution engine may encounter an instruction that requests a native method invocation. On such occasions, the execution engine will dutifully attempt to invoke that native method. When the native method returns (if it completes normally, not by throwing an exception), the execution engine will continue executing the next instruction in the bytecode stream.
+>
+
+One way to think of native methods, therefore, is as programmer-customized extensions to the Java virtual machine's instruction set. If an instruction requests an invocation of a native method, the execution engine invokes the native method. Running the native method is how the Java virtual machine executes the instruction. When the native method returns, the virtual machine moves on to the next instruction. If the native method completes abruptly (by throwing an exception), the virtual machine follows the same steps to handle the exception as it does when any instruction throws an exception.
+>
+
+Part of the job of executing an instruction is determining the next instruction to execute. An execution engine determines the next opcode to fetch in one of three ways. For many instructions, the next opcode to execute directly follows the current opcode and its operands, if any, in the bytecode stream. For some instructions, such as goto or return, the execution engine determines the next opcode as part of its execution of the current instruction. If an instruction throws an exception, the execution engine determines the next opcode to fetch by searching for an appropriate catch clause.
+>
+
+Several instructions can throw exceptions. The athrow instruction, for example, throws an exception explicitly. This instruction is the compiled form of the throw statement in Java source code. Every time the athrow instruction is executed, it will throw an exception. Other instructions throw exceptions only when certain conditions are encountered. For example, if the Java virtual machine discovers, to its chagrin, that the program is attempting to perform an integer divide by zero, it will throw an ArithmeticException. This can occur while executing any of four instructions--idiv, ldiv, irem, and lrem--which perform divisions or calculate remainders on ints or longs.
+>
+
+Each type of opcode in the Java virtual machine's instruction set has a mnemonic. In the typical assembly language style, streams of Java bytecodes can be represented by their mnemonics followed by (optional) operand values.
+>
+
+For an example of method's bytecode stream and mnemonics, consider the doMathForever() method of this class:
+>
+
+    // On CD-ROM in file jvm/ex4/Act.java
+    class Act {
+    
+        public static void doMathForever() {
+            int i = 0;
+            for (;;) {
+                i += 1;
+                i *= 2;
+            }
+        }
+    }
+
+The stream of bytecodes for doMathForever() can be disassembled into mnemonics as shown next. The Java virtual machine specification does not define any official syntax for representing the mnemonics of a method's bytecodes. The code shown next illustrates the manner in which streams of bytecode mnemonics will be represented in this book. The left hand column shows the offset in bytes from the beginning of the method's bytecodes to the start of each instruction. The center column shows the instruction and any operands. The right hand column contains comments, which are preceded with a double slash, just as in Java source code.
+>
+
+    // Bytecode stream: 03 3b 84 00 01 1a 05 68 3b a7 ff f9
+    // Disassembly:
+    // Method void doMathForever()
+    // Left column: offset of instruction from beginning of method
+    // |   Center column: instruction mnemonic and any operands
+    // |   |                   Right column: comment
+       0   iconst_0           // 03
+       1   istore_0           // 3b
+       2   iinc 0, 1          // 84 00 01
+       5   iload_0            // 1a
+       6   iconst_2           // 05
+       7   imul               // 68
+       8   istore_0           // 3b
+       9   goto 2             // a7 ff f9
+       
+This way of representing mnemonics is very similar to the output of the javap program of Sun's Java 2 SDK. javap allows you to look at the bytecode mnemonics of the methods of any class file. Note that jump addresses are given as offsets from the beginning of the method. The goto instruction causes the virtual machine to jump to the instruction at offset two (an iinc). The actual operand in the stream is minus seven. To execute this instruction, the virtual machine adds the operand to the current contents of the pc register. The result is the address of the iinc instruction at offset two. To make the mnemonics easier to read, the operands for jump instructions are shown as if the addition has already taken place. Instead of saying "goto -7," the mnemonics say, "goto 2."
+>
+
+The central focus of the Java virtual machine's instruction set is the operand stack. Values are generally pushed onto the operand stack before they are used. Although the Java virtual machine has no registers for storing arbitrary values, each method has a set of local variables. The instruction set treats the local variables, in effect, as a set of registers that are referred to by indexes. Nevertheless, other than the iinc instruction, which increments a local variable directly, values stored in the local variables must be moved to the operand stack before being used.
+>
+
+For example, to divide one local variable by another, the virtual machine must push both onto the stack, perform the division, and then store the result back into the local variables. To move the value of an array element or object field into a local variable, the virtual machine must first push the value onto the stack, then store it into the local variable. To set an array element or object field to a value stored in a local variable, the virtual machine must follow the reverse procedure. First, it must push the value of the local variable onto the stack, then pop it off the stack and into the array element or object field on the heap.
+>
+
+Several goals--some conflicting--guided the design of the Java virtual machine's instruction set. These goals are basically the same as those described in Part I of this book as the motivation behind Java's entire architecture: platform independence, network mobility, and security.
+>
+
+The platform independence goal was a major influence in the design of the instruction set. The instruction set's stack-centered approach, described previously, was chosen over a register-centered approach to facilitate efficient implementation on architectures with few or irregular registers, such as the Intel 80X86. This feature of the instruction set--the stack-centered design--make it easier to implement the Java virtual machine on a wide variety of host architectures.
+>
+
+Another motivation for Java's stack-centered instruction set is that compilers usually use a stack-based architecture to pass an intermediate compiled form or the compiled program to a linker/optimizer. The Java class file, which is in many ways similar to the UNIX .o or Windows .obj file emitted by a C compiler, really represents an intermediate compiled form of a Java program. In the case of Java, the virtual machine serves as (dynamic) linker and may serve as optimizer. The stack-centered architecture of the Java virtual machine's instruction set facilitates the optimization that may be performed at run-time in conjunction with execution engines that perform just-in-time compiling or adaptive optimization.
+>
+
+As mentioned in Chapter 4, "Network Mobility," one major design consideration was class file compactness. Compactness is important because it facilitates speedy transmission of class files across networks. In the bytecodes stored in class files, all instructions--except two that deal with table jumping--are aligned on byte boundaries. The total number of opcodes is small enough so that opcodes occupy only one byte. This design strategy favors class file compactness possibly at the cost of some performance when the program runs. In some Java virtual machine implementations, especially those executing bytecodes in silicon, the single-byte opcode may preclude certain optimizations that could improve performance. Also, better performance may have been possible on some implementations if the bytecode streams were word-aligned instead of byte-aligned. (An implementation could always realign bytecode streams, or translate opcodes into a more efficient form as classes are loaded. Bytecodes are byte-aligned in the class file and in the specification of the abstract method area and execution engine. Concrete implementations can store the loaded bytecode streams any way they wish.)
+>
+
+Another goal that guided the design of the instruction set was the ability to do bytecode verification, especially all at once by a data flow analyzer. The verification capability is needed as part of Java's security framework. The ability to use a data flow analyzer on the bytecodes when they are loaded, rather than verifying each instruction as it is executed, facilitates execution speed. One way this design goal manifests itself in the instruction set is that most opcodes indicate the type they operate on.
+>
+
+For example, instead of simply having one instruction that pops a word from the operand stack and stores it in a local variable, the Java virtual machine's instruction set has two. One instruction, istore, pops and stores an int. The other instruction, fstore, pops and stores a float. Both of these instructions perform the exact same function when executed: they pop a word and store it. Distinguishing between popping and storing an int versus a float is important only to the verification process.
+>
+
+For many instructions, the virtual machine needs to know the types being operated on to know how to perform the operation. For example, the Java virtual machine supports two ways of adding two words together, yielding a one-word result. One addition treats the words as ints, the other as floats. The difference between these two instructions facilitates verification, but also tells the virtual machine whether it should perform integer or floating point arithmetic.
+>
+
+A few instructions operate on any type. The dup instruction, for example, duplicates the top word of a stack irrespective of its type. Some instructions, such as goto, don't operate on typed values. The majority of the instructions, however, operate on a specific type. The mnemonics for most of these "typed" instructions indicate their type by a single character prefix that starts their mnemonic. Table 5-2 shows the prefixes for the various types. A few instructions, such as arraylength or instanceof, don't include a prefix because their type is obvious. The arraylength opcode requires an array reference. The instanceof opcode requires an object reference.
+>
+
+|Type|Code|Example|Description|
+| ---- | ---- | --- | --- |
+|byte|b|baload|load byte from array|
+|short|s|saload|load short from array|
+|int|i|iaload|load int from array|
+|long|l|laload|load long from array|
+|char|c|caload|load char from array|
+|float|f|faload|load float from array|
+|double|d|daload|load double from array|
+|reference|a|aaload|load reference from array|
+
+**Table 5-2. Type prefixes of bytecode mnemonics**
+
+Values on the operand stack must be used in a manner appropriate to their type. It is illegal, for example, to push four ints, then add them as if they were two longs. It is illegal to push a float value onto the operand stack from the local variables, then store it as an int in an array on the heap. It is illegal to push a double value from an object field on the heap, then store the topmost of its two words into the local variables as an value of type reference. The strict type rules that are enforced by Java compilers must also be enforced by Java virtual machine implementations.
+>
+
+Implementations must also observe rules when executing instructions that perform generic stack operations independent of type. As mentioned previously, the dup instruction pushes a copy of the top word of the stack, irrespective of type. This instruction can be used on any value that occupies one word: an int, float, reference, or returnAddress. It is illegal, however, to use dup when the top of the stack contains either a long or double, the data types that occupy two consecutive operand stack locations. A long or double sitting on the top of the operand stack can be duplicated in their entirety by the dup2 instruction, which pushes a copy of the top two words onto the operand stack. The generic instructions cannot be used to split up dual-word values.
+>
+
+To keep the instruction set small enough to enable each opcode to be represented by a single byte, not all operations are supported on all types. Most operations are not supported for types byte, short, and char. These types are converted to int when moved from the heap or method area to the stack frame. They are operated on as ints, then converted back to byte, short, or char before being stored back into the heap or method area.
+>
+
+Table 5-3 shows the computation types that correspond to each storage type in the Java virtual machine. As used here, a storage type is the manner in which values of the type are represented on the heap. The storage type corresponds to the type of the variable in Java source code. A computation type is the manner in which the type is represented on the Java stack frame.
+>
+
+|Storage Type|Minimum Bits in Heap or Method Area|Computation Type|Words in the Java Stack Frame|
+| ---- | ---- | --- | --- |
+|byte|8|int|1|
+|short|16|int|1|
+|int|32|int|1|
+|long|64|long|2|
+|char|16|int|1|
+|float|32|float|1|
+|double|64|double|2|
+|reference|32|reference|1|
+
+**Table 5-3. Storage and computation types inside the Java virtual machine**
+
+Implementations of the Java virtual machine must in some way ensure that values are operated on by instructions appropriate to their type. They can verify bytecodes up front as part of the class verification process, on the fly as the program executes, or some combination of both. Bytecode verification is described in more detail in Chapter 7, "The Lifetime of a Type." The entire instruction set is covered in detail in Chapters 10 through 20.
+>
+
+#### Execution Techniques
+#### Threads
+
+---
+### [Native Method Interface](https://www.artima.com/insidejvm/ed2/jvm12.html)
+
+---
+## [The Real Machine](https://www.artima.com/insidejvm/ed2/jvm13.html)
+
+---
+## [Eternal Math: A Simulation](https://www.artima.com/insidejvm/ed2/jvm13.html)
+
+---
+## [On the CD-ROM](https://www.artima.com/insidejvm/ed2/jvm13.html)
+
+---
+## [The Resources Page](https://www.artima.com/insidejvm/ed2/jvm13.html)
 
 
 
