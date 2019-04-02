@@ -43,6 +43,7 @@ Java运行时的内存划分图及设置参数
 
 1. 方法区的一部分，所以应该也是线程共享的
 2. 存放了一些符号引用，当 new 一个对象时，会检查这个区域是否有这个符号的引用
+>用于存储编译期就生成的字面常量、符号引用、翻译出来的直接引用（符号引用就是编码是用字符串表示某个变量、接口的位置，直接引用就是根据符号引用翻译出来的地址，将在类链接阶段完成翻译）
 
 ---
 ### 程序计数器（Program Counter Register）
@@ -58,11 +59,12 @@ Java运行时的内存划分图及设置参数
 
 #### 栈帧
 
-1. 每个方法被执行的时候都会同时创建一个栈帧（Stack Frame）用于存储局部变量表、操作栈、动态链接、方法出口等信息
+1. 每个方法被执行的时候都会同时创建一个栈帧（Stack Frame）用于存储局部变量表、操作数栈、动态链接、方法出口等信息
     1. 局部变量表存放了编译期可知的各种基本数据类型（boolean、byte、char、short、int、float、long、double）
     2. 对象引用（reference类型，它不等同于对象本身，根据不同的虚拟机实现，它可能是一个指向对象起始地址的引用指针，也可能指向一个代表对象的句柄或者其他与此对象相关的位置）
     3.  returnAddress类型（指向了一条字节码指令的地址）
 2. 每一个方法被调用直至执行完成的过程，就对应着一个栈帧在虚拟机栈中从入栈到出栈的过程
+3. 局部变量表在栈帧内的不统域可以复用    
 
 ---
 ### 本地方法栈（Native Method Stacks）
@@ -83,3 +85,5 @@ Java运行时的内存划分图及设置参数
 > [Java 运行时的内存划分](https://crossoverjie.top/JCSprout/#/jvm/MemoryAllocation)
 > 
 > [jvm系列(二):JVM内存结构](https://mp.weixin.qq.com/s?__biz=MzI4NDY5Mjc1Mg==&mid=2247483949&idx=1&sn=8b69d833bbc805e63d5b2fa7c73655f5&chksm=ebf6da52dc815344add64af6fb78fee439c8c27b539b3c0e87d8f6861c8422144d516ae0a837&scene=21#wechat_redirect)
+> 
+> [Java虚拟机一：Java运行时内存区域及对象的创建](https://blog.csdn.net/yulong0809/article/details/77104713)
