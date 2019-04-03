@@ -78,7 +78,7 @@ Java运行时的内存划分图及设置参数
 
 ## 参考资料
 
->[Inside the Java Virtual Machine](https://www.artima.com/insidejvm/ed2/index.html "推荐")
+> [Inside the Java Virtual Machine](https://www.artima.com/insidejvm/ed2/index.html "推荐")
 >
 > [java运行时内存分配详解](https://www.cnblogs.com/hewenwu/p/3662529.html)
 > 
@@ -87,3 +87,5 @@ Java运行时的内存划分图及设置参数
 > [jvm系列(二):JVM内存结构](https://mp.weixin.qq.com/s?__biz=MzI4NDY5Mjc1Mg==&mid=2247483949&idx=1&sn=8b69d833bbc805e63d5b2fa7c73655f5&chksm=ebf6da52dc815344add64af6fb78fee439c8c27b539b3c0e87d8f6861c8422144d516ae0a837&scene=21#wechat_redirect)
 > 
 > [Java虚拟机一：Java运行时内存区域及对象的创建](https://blog.csdn.net/yulong0809/article/details/77104713)
+>
+> [Java系列笔记(3) - Java 内存区域和GC机制](http://www.cnblogs.com/zhguang/p/3257367.html)
