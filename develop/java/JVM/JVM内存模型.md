@@ -89,3 +89,11 @@ Java运行时的内存划分图及设置参数
 > [Java虚拟机一：Java运行时内存区域及对象的创建](https://blog.csdn.net/yulong0809/article/details/77104713)
 >
 > [Java系列笔记(3) - Java 内存区域和GC机制](http://www.cnblogs.com/zhguang/p/3257367.html)
+>
+>>下面三个，都讲到了Java new一个对象的过程
+>>
+>>[2. Java内存区域与内存溢出异常](http://www.cloudruo.com/2017/04/06/2-Java%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F%E4%B8%8E%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA%E5%BC%82%E5%B8%B8/)
+>>
+>>[【深入Java虚拟机JVM 05】HotSpot对象探秘](https://blog.csdn.net/baidu_37107022/article/details/88875751)
+>>
+>>[《深入理解Java虚拟机》第二章Java内存区域与内存溢出异常](https://www.cnblogs.com/java-chen-hao/p/10488208.html)

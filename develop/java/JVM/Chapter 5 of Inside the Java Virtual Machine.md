@@ -181,7 +181,7 @@ The class loader subsystem involves many other parts of the Java virtual machine
 #### Loading, Linking and Initialization
 
 The class loader subsystem is responsible for more than just locating and importing the binary data for classes. It must also verify the correctness of imported classes, allocate and initialize memory for class variables, and assist in the resolution of symbolic references. These activities are performed in a strict order:
->这个类加载子系统不但负责定位并输入类的二进制数据，而且验证输入的类的正确性，为类的变量初始化并分配内存，并在解决方案上协助符号引用。这些活动按严格的顺序执行：
+>这个类加载子系统不但负责定位并输入类的二进制数据，而且验证输入的类的正确性，为类的变量初始化并分配内存，并在解析上协助符号引用。这些活动按严格的顺序执行：
 
 1. Loading: finding and importing the binary data for a type
 2. Linking: performing verification, preparation, and (optionally) resolution
@@ -191,13 +191,13 @@ The class loader subsystem is responsible for more than just locating and import
 3. Initialization: invoking Java code that initializes class variables to their proper starting values.
 >加载：查找并导入类型（类或接口）的二进制数据
 >
->链接：执行验证，准备，和（可选）解决方案
+>链接：执行验证，准备，和（可选）解析
 >
 >>验证：确认导入的类型的正确性
 >>
 >>准备：为类的变量分配内存，并且初始化内存为默认值
 >>
->>解决方案：将`符号引用`从类型转换为`直接引用`。
+>>解析：将`符号引用`从类型转换为`直接引用`。
 >
 >初始化：调用Java代码，将类变量初始化为正确的起始值。
 
@@ -354,7 +354,7 @@ The virtual machine uses this information during dynamic linking. When one type 
 #### A Reference to Class Class
 
 An instance of class java.lang.Class is created by the Java virtual machine for every type it loads. The virtual machine must in some way associate a reference to the Class instance for a type with the type's data in the method area.
->每个类型（类或接口）被Java虚拟机加载的时候，都会有一个java.lang.Class的实例被创建。虚拟机必须以某种方式将对类型（类或接口）实例的引用与方法区域中类型（类或接口）的数据相关联。
+>每个类型（类或接口）被Java虚拟机加载的时候，都会有一个java.lang.Class的实例被创建（比方你加载了Test.class这个类，那么堆中会有一个java.lang.Class的实例，里面的name是test.class，里面的其他信息是test这个类中的信息）。虚拟机必须以某种方式将对类型（类或接口）实例的引用与方法区域中类型（类或接口）的数据相关联。
 
 Your Java programs can obtain and use references to Class objects. One static method in class Class, allows you to get a reference to the Class instance for any loaded class:
 >您的Java程序可以获取和使用对Class对象的引用。 类Class中的一个静态方法允许您获取对任何已加载类的Class实例的引用：
@@ -448,7 +448,7 @@ The Java virtual machine then replaces the symbolic reference in Volcano's const
 > * Lava加载完之后，Java虚拟机会把Volcano的常量池条目1（entry one）中的符号引用替换成一个指针，指向Lava的类数据。
 >
 >如果虚拟机还要使用Volcano的常量池条目1（entry one），它不需要再经历相对比较慢的，在方法区中，根据符号引用（Lava全量类名），搜索Lava类的的过程。Java虚拟机只需要使用指针，就能够快速访问Lava的类数据。
->>这个把符号引用替换成直接引用（在这个例子中是指针）的过程，被叫做常量池分解（resolution）。通过查找方法区，找到引用的实体（必要时加载新的类），把符号引用解析成直接引用。
+>>这个把符号引用替换成直接引用（在这个例子中是指针）的过程，被叫做常量池解析（resolution）。通过查找方法区，找到引用的实体（必要时加载新的类），把符号引用解析成直接引用。
 
 Finally, the virtual machine is ready to actually allocate memory for a new Lava object. Once again, the virtual machine consults the information stored in the method area. It uses the pointer (which was just put into Volcano's constant pool entry one) to the Lava data (which was just imported into the method area) to find out how much heap space is required by a Lava object.
 > * 最终，虚拟机准备好给新的Lava对象分配内存了。
