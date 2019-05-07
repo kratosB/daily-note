@@ -462,11 +462,12 @@ A Java virtual machine can always determine the amount of memory required to rep
 
 Once the Java virtual machine has determined the amount of heap space required by a Lava object, it allocates that space on the heap and initializes the instance variable speed to zero, its default initial value. If class Lava's superclass, Object, has any instance variables, those are also initialized to default initial values. (The details of initialization of both classes and objects are given in Chapter 7, "The Lifetime of a Type.")
 > * 当Java虚拟机确定了要在堆中给Lava对象分配多少内存，它就在堆上分配那些空间，并初始化`Lava对象`中的变量实例`speed`为0，0是默认初始化值。如果Lava的父类（在这边是Object类），也有实例变量，那么它们也会被初始化成默认初始值。（初始化类和对象的详细信息在第七章`The Lifetime of a Type.`中）
+> * （这里其实还有一步，在堆当中的Lava对象中，Java虚拟机还会存放一个方法区中存放Lava类的类型信息的内存地址。）
 
 The first instruction of main() completes by pushing a reference to the new Lava object onto the stack. A later instruction will use the reference to invoke Java code that initializes the speed variable to its proper initial value, five. Another instruction will use the reference to invoke the flow() method on the referenced Lava object.
 > * Java虚拟机把新的Lava对象的引用push到栈里之后，main()方法的第一个指令完成了。
 > * 下一个指令会使用这个引用来调用Java代码，来初始化`speed`变量为它正确的初始值，5。
-> * 零一条指令会使用这个引用来调用被引用的Lava对象上的flow()方法。
+> * 之后一条指令会使用这个引用来调用被引用的Lava对象上的flow()方法。
 
 ---
 ### [The Heap](https://www.artima.com/insidejvm/ed2/jvm6.html)
@@ -633,7 +634,7 @@ The stack frame has three parts: local variables, operand stack, and frame data.
 >栈帧有三个组成部分：局部变量，操作数栈，栈帧数据。局部变量和操作数栈的大小（用word来做单位）取决于每个方法自己的需求。这个大小在编译的时候就确定了，被包含在类数据中。栈帧数据的大小取决于实现。
 
 When the Java virtual machine invokes a Java method, it checks the class data to determine the number of words required by the method in the local variables and operand stack. It creates a stack frame of the proper size for the method and pushes it onto the Java stack.
->当Java虚拟机调用一个Java方法，虚拟机检查类数据，来判断这个方法的操作数栈和局部变量需要多少个单位（word）的内存。虚拟机为这个方法创建一个适当大小的站站，然后把栈帧推送到Java堆栈中。
+>当Java虚拟机调用一个Java方法，虚拟机检查类数据，来判断这个方法的操作数栈和局部变量需要多少个单位（word）的内存。虚拟机为这个方法创建一个适当大小的栈帧，然后把栈帧推送到Java堆栈中。
 
 #### Local Variables
 
@@ -667,7 +668,7 @@ The local variables section contains a method's parameters and local variables. 
 **Figure 5-9. Method parameters on the local variables section of a Java stack.**
 
 Note that Figure 5-9 shows that the first parameter in the local variables for runInstanceMethod() is of type reference, even though no such parameter appears in the source code. This is the hidden this reference passed to every instance method. Instance methods use this reference to access the instance data of the object upon which they were invoked. As you can see by looking at the local variables for runClassMethod() in Figure 5-9, class methods do not receive a hidden this. Class methods are not invoked on objects. You can't directly access a class's instance variables from a class method, because there is no instance associated with the method invocation.
->注意图5-9里说的，runInstanceMethod()这个方法的局部变量中的第一个参数是引用类型，但是在代码里没有这种参数。这是一个隐藏引用，每个实例方法中都有。实例方法通过这个引用来访问（调用这个方法的）对象中的实例数据。如你所见，图5-9的runClassMethod()的局部变量中没有隐藏引用。因为runClassMethod()是静态方法（也叫做类方法？），类方法不会被对象调用（而是被类调用）。通过类方法，无法直接访问一个类的实例（对象）的变量，因为没有实例与这个方法调用关联（大概理解为静态方法的调用不与类的实例相关联吧）。
+>注意图5-9里说的，runInstanceMethod()这个方法的局部变量中的第一个参数是引用类型，但是在代码里没有这种参数。这是一个隐藏引用，每个实例方法中都有。实例方法通过这个引用来访问（调用这个方法的）对象中的实例数据（举个例子，通过这个引用，可以快速定位到这个方法所在的类的对象，从而定位到对象中的字段）。如你所见，图5-9的runClassMethod()的局部变量中没有隐藏引用。因为runClassMethod()是静态方法（也叫做类方法？），类方法不会被对象调用（而是被类调用）。通过类方法，无法直接访问一个类的实例（对象）的变量，因为没有实例与这个方法调用关联（大概理解为静态方法不能使用类的实例中的字段，只能使用静态字段）。
 
 Note also that types byte, short, char, and boolean in the source code become ints in the local variables. This is also true of the operand stack. As mentioned earlier, the boolean type is not supported directly by the Java virtual machine. The Java compiler always uses ints to represent boolean values in the local variables or operand stack. Data types byte, short, and char, however, are supported directly by the Java virtual machine. These can be stored on the heap as instance variables or array elements, or in the method area as class variables. When placed into local variables or the operand stack, however, values of type byte, short, and char are converted into ints. They are manipulated as ints while on the stack frame, then converted back into byte, short, or char when stored back into heap or method area.
 >也要注意，源码中的byte，short，char和boolean类型，在局部变量中变成了int类型。在操作数栈中也是这样。之前已经说过，boolean类型没有被Java虚拟机直接支持，在操作数栈和局部变量中，Java编译器总是用int来表示boolean。不过byte，short和char是直接被Java虚拟机支持的。它们可以被存在堆中，作为实例变量/数组元素，或者存在方法区，作为类变量。
