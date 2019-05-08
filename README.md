@@ -1,7 +1,7 @@
 # daily-note
 dddddddddd
 
-<script src="mermaid.full.min.js"></script>
+<script src="/js/mermaid.full.min.js"></script>
 
 <div class="mermaid">
 graph TD;
