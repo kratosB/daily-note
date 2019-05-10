@@ -297,7 +297,7 @@ Java中可作为GC Roots的对象有一下几种：
 4. 主要意义也是**Client模式**下使用。
 5. 在Server模式下，有两大用途：
     1. jdk1.5之前的版本中，**搭配Parallel Scavenge**收集器使用。
-    2. 作为GMS收集器**后备预案**，在并发收集发生**Concurrent Mode Failure**的时候使用。
+    2. 作为CMS收集器**后备预案**，在并发收集发生**Concurrent Mode Failure**的时候使用。
 
 #### 3.3.5 Parallel Old收集器
 
@@ -306,14 +306,14 @@ Java中可作为GC Roots的对象有一下几种：
 1. Parallel Scavenge收集器的**老年代**版本。
 2. 使用**多线程**。
 3. 使用**标记整理算法**。
-4. 在**jdk1.6之后才提供**这种算法。
+4. 在**jdk1.6之后才提供**这种收集器。
 5. 替代serial Old（效率低，托Parallel Scavenge的高吞吐的后腿）与Parallel Scavenge搭配，真正实现**吞吐量优先**。
 
 #### 3.3.6 CMS收集器（Concurrent Mark Sweep）
 
 ![Concurrent Mark Sweep收集器示意图](https://static.oschina.net/uploads/img/201704/05150953_JGmA.png "Concurrent Mark Sweep收集器示意图")
 
-1. CMS收集器是一种以**获取最短回收停顿时间**为目标的收集器。
+1. CMS收集器是一种以**获取最短回收停顿时间**为目标的收集器，**重视服务的响应速度**。
 2. CMS收集器是基于**标记清除**算法实现的
 3. CMS收集器的运作过程相对来说**更复杂**一些，整个过程分为**4个步骤**，包括：
     1. **初始标记（CMS initial mark）**
@@ -329,9 +329,13 @@ Java中可作为GC Roots的对象有一下几种：
     1. **并发**。
     2. **低停顿**。
 7. 主要**缺点**：
-    1. 
-    2. 
-    3. 
+    1. CMS收集器**对CPU资源非常敏感**。垃圾回收会占用一个CPU，导致**吞吐量下降**。
+        > 虚拟机提供了**增量式并发收集器**（Incremental Concurrent Mark Sweep），在并发标记和并发清理的时候，让GC线程和用户线程**交替进行**，**减少占用资源**，但是**延长时间**（不好用，不提倡用）。
+    2. 无法处理**浮动垃圾（Floating Garbage）**，可能会出现**Concurrent Mode Failure**导致另一次Full GC的产生。
+        > 1. **浮动垃圾**：并发清理阶段，用户线程还在运行并产**生新的（标记之后出现的）垃圾**，CMS本次无法处理，只能留在下次处理。
+        > 2. 因为有**浮动垃圾**，CMS不能等到**老年代全部填满**才进行收集。默认情况下，这个线是68%。
+        > 3. Concurrent Mode Failure发生的时候，虚拟机将启动后备预案，**临时使用Serial Old收集器**来收集老年代垃圾，**停顿时间比较长**。
+    3. 这种收集器使用标记清除，**会产生很多碎片**。
 
 #### 3.3.7 G1收集器
 
