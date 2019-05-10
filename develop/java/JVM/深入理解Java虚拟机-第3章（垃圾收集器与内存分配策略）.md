@@ -59,7 +59,7 @@ Java中可作为GC Roots的对象有一下几种：
 3. **方法区中的常量**引用的对象。
 4. **本地方法中**JNI（native方法）的引用的对象。
 
-[](https://img-blog.csdn.net/20171129142211991?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXFfMzY4NjY4MDg=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+![](https://img-blog.csdn.net/20171129142211991?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXFfMzY4NjY4MDg=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
 如图所示，Object5，6，7虽然不像关联，但是它们是GC Roots不可达的，所以是可回收的对象
 
@@ -152,7 +152,7 @@ Java中可作为GC Roots的对象有一下几种：
 
 #### 3.2.1 标记-清除算法（Mark-Sweep）
 
-[标记清除](https://camo.githubusercontent.com/2300ad44e7d31e4165c1ceffe3bad183e921a512/68747470733a2f2f696d616765732e636e626c6f67732e636f6d2f636e626c6f67735f636f6d2f616e64792d7a686f752f3830363433352f6f5f4a766d5f54756e696e673030322e706e67 "标记清除")
+![标记清除](https://images.cnblogs.com/cnblogs_com/andy-zhou/806435/o_Jvm_Tuning002.png "标记清除")
 
 1. 算法分为**标记**和**清除**两个阶段。
     1. **标记出所有**需要回收的对象。
@@ -163,7 +163,7 @@ Java中可作为GC Roots的对象有一下几种：
 
 #### 3.2.2 复制算法（Copying）
 
-[复制算法](https://camo.githubusercontent.com/743c588417699bd97b9653055fe9e5966d8c2f5f/68747470733a2f2f696d616765732e636e626c6f67732e636f6d2f636e626c6f67735f636f6d2f616e64792d7a686f752f3830363433352f6f5f4a766d5f54756e696e673030332e706e67 "复制算法")
+![复制算法](https://images.cnblogs.com/cnblogs_com/andy-zhou/806435/o_Jvm_Tuning003.png "复制算法")
 
 1. 算法将内存分成两块，每次**只用其中一块**。
 2. 当这块内存满了，就把**还存活**的对象复制到另一块上面，然后把已经使用过的内存空间**一次性清理掉**。
@@ -175,7 +175,7 @@ Java中可作为GC Roots的对象有一下几种：
 
 #### 3.2.3 标记-整理算法（Mark-Compact）
 
-[标记整理](https://camo.githubusercontent.com/1c5631e5e7fc857655d07a98f228d92f2fe16ca5/68747470733a2f2f696d616765732e636e626c6f67732e636f6d2f636e626c6f67735f636f6d2f616e64792d7a686f752f3830363433352f6f5f4a766d5f54756e696e673030342e706e67 "标记整理")
+![标记整理](https://images.cnblogs.com/cnblogs_com/andy-zhou/806435/o_Jvm_Tuning004.png "标记整理")
 
 1. 算法分为**标记**和**整理**两个阶段。
     1. 标记阶段跟**标记清除**算法一样。
@@ -186,7 +186,7 @@ Java中可作为GC Roots的对象有一下几种：
 
 #### 3.2.4 分代收集算法
 
-[分代回收示意图](https://camo.githubusercontent.com/2b771ef720e47cc0d60cae04609dbba60483bde4/68747470733a2f2f696d616765732e636e626c6f67732e636f6d2f636e626c6f67735f636f6d2f616e64792d7a686f752f3830363433352f6f5f4a766d5f54756e696e673030362e706e67 "分代回收示意图")
+![分代回收示意图](https://images.cnblogs.com/cnblogs_com/andy-zhou/806435/o_Jvm_Tuning006.png "分代回收示意图")
 
 1. 不同的对象的**生命周期**是不一样的。
     > 1. Java程序运行的过程中，会产生大量的对象，其中有些对象是与业务信息相关，比如Http请求中的Session对象、线程、Socket连接，这类对象跟业务直接挂钩，因此**生命周期比较长**。
@@ -238,7 +238,7 @@ Java中可作为GC Roots的对象有一下几种：
 
 ### 3.3 垃圾收集器
 
-[垃圾收集器](https://camo.githubusercontent.com/eaae62be72aa573322dedd8f43ef5336d071a7fc/68747470733a2f2f7374617469632e6f736368696e612e6e65742f75706c6f6164732f696d672f3230313730342f30353135303331335f6370706d2e706e67 "垃圾收集器")
+![垃圾收集器](https://static.oschina.net/uploads/img/201704/05150313_cppm.png "垃圾收集器")
 
 如果说收集算法是内存回收的方法论，那么垃圾收集器就是内存回收的具体实现。这里讨论的收集器基于JDK 1.7 Update 14之后的HotSpot虚拟机（在这个版本中正式提供了商用的G1收集器，之前G1仍处于实验状态），这个虚拟机包含的所有收集器如图所示。
 
@@ -254,33 +254,39 @@ Java中可作为GC Roots的对象有一下几种：
 
 #### 3.3.1 Serial收集器
 
-[Serial/Serial Old收集器示意图](https://camo.githubusercontent.com/a256c803f9164a35c67c62327c1cb51ea34ee651/68747470733a2f2f7374617469632e6f736368696e612e6e65742f75706c6f6164732f696d672f3230313730342f30353135303432325f483348682e706e67 "Serial/Serial Old收集器示意图")
+![Serial/Serial Old收集器示意图](https://static.oschina.net/uploads/img/201704/05150422_H3Hh.png "Serial/Serial Old收集器示意图")
 
-1. 这个收集器是一个单线程的收集器。
-2. 在它进行垃圾收集时，必须**暂停其他所有的工作线程**，直到它收集结束。
-3. 到现在为止，它依然是虚拟机运行在Client模式下的默认新生代收集器。
-4. 简单而高效（与其他收集器的单线程比）。
+1. Serial收集器是一个**新生代收集器**。
+2. 这个收集器是一个单线程的收集器。
+3. 在它进行垃圾收集时，必须**暂停其他所有的工作线程**，直到它收集结束。
+4. 到现在为止，它依然是虚拟机运行在Client模式下的默认新生代收集器。
+5. 简单而高效（与其他收集器的单线程比）。
 
 #### 3.3.2 ParNew收集器
 
-[ParNew/Serial Old收集器](https://camo.githubusercontent.com/d0a0dcc72654499d4de579231b00099a58fe90ef/68747470733a2f2f7374617469632e6f736368696e612e6e65742f75706c6f6164732f696d672f3230313730342f30353135303532375f3778666c2e706e67 "ParNew/Serial Old收集器")
+![ParNew/Serial Old收集器](https://static.oschina.net/uploads/img/201704/05150527_7xfl.png "ParNew/Serial Old收集器")
 
-1. ParNew收集器其实就是Serial收集器的**多线程**版本。
-2. 除了使用多条线程进行垃圾收集之外，其余行为包括控制参数、收集算法、Stop The World、对象分配规则、回收策略等都与Serial收集器**完全一样**。
-3. 目前，除了Serial收集器外，**只有**ParNew收集器能**与CMS收集器配合**工作。
-4. 默认开启的收集线程数**与CPU的数量相同**，在CPU非常多（譬如32个）的环境下，可以使用-XX:ParallelGCThreads参数来**限制垃圾收集的线程数**。
-5. 它是许多运行在Server模式下的虚拟机中首选的新生代收集器。
+1. ParNew收集器是一个**新生代收集器**。
+2. ParNew收集器其实就是Serial收集器的**多线程**版本。
+3. 除了使用多条线程进行垃圾收集之外，其余行为包括控制参数、收集算法、Stop The World、对象分配规则、回收策略等都与Serial收集器**完全一样**。
+4. 目前，除了Serial收集器外，**只有**ParNew收集器能**与CMS收集器配合**工作。
+5. 默认开启的收集线程数**与CPU的数量相同**，在CPU非常多（譬如32个）的环境下，可以使用-XX:ParallelGCThreads参数来**限制垃圾收集的线程数**。
+6. 它是许多运行在Server模式下的虚拟机中首选的新生代收集器。
 
 #### 3.3.3 Parallel Scavenge收集器
 
-1. 
-2. 
-3. 
-4. 
-5. 
-6. 
+1. Parallel Scavenge收集器也是一个**新生代收集器**。
+2. Parallel Scavenge收集器也使用**复制算法**，并且是并行的**多线程收集器**。
+3. 与其他收集器**不同**的是，其他收集器的目标是尽可能缩短垃圾收集时用户线程的**停顿时间**，Parallel Scavenge收集器的目的是达到一个**可控制的吞吐量**。
+    > * 停顿时间越短，越是和用户交互程序
+    > * 高吞吐量适合主要在**后台运算**，不需要交互的任务。
+4. Parallel Scavenge收集器有一个-XX:UseAdaptiveSizePolicy的参数，是一个**自适应调节策略**开关。自适应调节策略也是Parallel Scavenge收集器与ParNew收集器的**重要区别**。
+    > 打开这个开关之后，就不需要手动指定新生代大小，Eden与Survivor的比理，晋升年老代年龄等参数了。
+5. ~~具体细节，这个文章中没有描述~~
 
 #### 3.3.4 serial Old收集器
+
+![Serial/Serial Old收集器示意图](https://static.oschina.net/uploads/img/201704/05150746_078R.png "Serial/Serial Old收集器示意图")
 
 1. 
 2. 
