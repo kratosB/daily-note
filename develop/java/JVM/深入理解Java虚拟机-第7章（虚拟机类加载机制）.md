@@ -345,7 +345,67 @@
         1. 负责加载**用户类路径（ClassPath）上**所指定的类库。
         2. 开发者可以直接使用应用程序类加载器。
 
+![](https://ws3.sinaimg.cn/large/006tNc79ly1fmjwua3iv4j30ic0f0mxq.jpg)
+
+上图展示的类加载器之间的层次关系，被称为类加载器的**双亲委派模型（Parents Delegation Model）**。
+
+双亲委派模型要求：
+1. 除了顶层的启动类加载器外，其余的类加载器都**应该有自己的父类加载器**。
+
+双亲委派模型的工作过程是：
+1. 如果一个类加载器收到了类加载请求，它首先**不会自己去尝试加载**这个类，而是把这个请求**委派给父类加载器**去完成。
+2. 依此类推直到**传送到顶层**的启动类加载器。
+3. 只有当父加载器反馈自己**无法完成**这个加载请求时，子加载器才会尝试自己去加载。
+
+使用双亲委派模型的好处是：
+1. Java类随着它的类加载器一起具备了一种带有优先级的层次关系。
+    > 例如java.lang.Object，它存放在rt.jar中，无论那个类加载器要加载这个类，最终都会**委派给启动类加载器**，所以Object类在程序的各种类加载器环境中都是同一个类。
+    >> 相反，如果没有使用双亲委派模型，由各个类加载器自行加载，如果用户自己写了一个java.lang.Object类，并放在程序的ClassPath中，那系统中会有多个不同的Object类
+    >>
+    >> 如果自己写一个与rt.jar类库中已有类重名的Java类，放在ClassPath下，你会发现可以正常编译，但是永远无法被加载运行（应该是，层层向上之后，启动类加载器在自己的目录底下找到了rt.jar类库，并在其中找到了相同名称的类，并完成了加载。）
+```
+    protected synchronized Class<?> loadClass(String name, boolean resolve)
+            throws ClassNotFoundException {
+        // First, check if the class has already been loaded
+        // 首先，检查请求的类是否已经被加载过了
+        Class<?> c = findLoadedClass(name);
+        if (c == null) {
+            try {
+                if (parent != null) {
+                    c = parent.loadClass(name, false);
+                } else {
+                    c = findBootstrapClassOrNull(name);
+                }
+            } catch (ClassNotFoundException e) {
+                // ClassNotFoundException thrown if class not found
+                // from the non-null parent class loader
+                // 如果父类加载器抛出ClassNotFoundException
+                // 则说明父类加载器无法完成加载请求
+            }
+            if (c == null) {
+                // If still not found, then invoke findClass in order
+                // to find the class.
+                // 在父类加载器无法加载的时候
+                // 再调用本身的findClass方法来进行加载
+                long t1 = System.nanoTime();
+                c = findClass(name);
+            }
+        }
+        if (resolve) {
+            resolveClass(c);
+        }
+        return c;
+    }
+```
+上面的代码是**双亲委派模型的实现**，存在于java.lang.ClassLoader的loadClass()方法中：
+1. 先检查是否已经**被加载过**。
+2. 没有加载则**调用父类加载器**的loadClass()方法。
+3. 若父加载器为空，则默认启动启动类加载器作为父加载器。
+4. 父加载器加载失败，抛出ClassNotFoundException异常，并调用自己的findClass()方法进行加载。
+
 #### 7.3.3 破坏双亲委派模型
+
+没看，大概是对老代码的妥协，设计漏洞，为了热部署等功能扩展。
 
 
 
