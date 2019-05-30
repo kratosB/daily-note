@@ -8,14 +8,14 @@
 ![类的生命周期](https://img-blog.csdn.net/20180725191039947?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2dhbjc4NTE2MDYyNw==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
 
 1. 类从被加载到虚拟机内存种开始，到卸载出内存为止，它的整个生命周期包括了：
-    1. 加载（Loading）
-    2. 连接（Linking）
-        1. 验证（Verification）
-        2. 准备（Preparation）
-        3. 解析（Resolution）
-    3. 初始化（Initialization）
-    4. 使用（Using）
-    5. 卸载（Unloading）
+    1. **加载（Loading）**
+    2. **连接（Linking）**
+        1. **验证（Verification）**
+        2. **准备（Preparation）**
+        3. **解析（Resolution）**
+    3. **初始化（Initialization）**
+    4. **使用（Using）**
+    5. **卸载（Unloading）**
 2. 虚拟机对**初始化**阶段有严格规定，只有四种情况必须立即对类进行“初始化”：
     1. 遇到**new**，**getstatic**，**putstatic**或**invokestatic**这四条字节码之类时，如果类没有进行过初始化，则需要先触发初始化。
         > 最常见的场景是:  
@@ -87,7 +87,7 @@
         }
     }
     
-这段代码运行只会没有输出`SuperClass init!`，说明**没有触发**SuperClass类的初始化。但是这段代码触发了Lorg.fenixsoft.classloading.SuperClass类的初始化阶段。这个类是**虚拟机自动生成**的，直接继承于Object的子类，创建动作由newarray触发。
+这段代码运行只会没有输出`SuperClass init!`，说明**没有触发**SuperClass类的初始化。但是这段代码触发了[Lorg.fenixsoft.classloading.SuperClass类的初始化阶段。这个类是**虚拟机自动生成**的，直接继承于Object的子类，创建动作由newarray触发。
 
 这个类，代表了一个元素类型为org.fenixsoft.classloading.SuperClass的**一维数组**。
 
@@ -138,7 +138,7 @@
     1. **文件格式**验证：
         1. 验证字节流是否附合Class文件格式规范，并能被当前版本的虚拟机处理。
         2. 保证输入的字节流能正确地解析并**存储于方法区**。
-        3. 这个阶段是**基于字节流**进行的，这个阶段之后，字节流才会进入内存中的方法区，后面三个阶段都是**基于方法区的存储结构**的。
+        3. 验证的这个阶段是**基于字节流**进行的，这个阶段之后，字节流才会进入内存中的方法区，验证的后面三个阶段都是**基于方法区的存储结构**的。
     2. **元数据**验证：
         1. 对字节码描述的信息进行语义分析，以保证其描述的信息附合Java语言规范。
     3. **字节码**验证：
@@ -286,7 +286,7 @@
     >
     > 这里的“相等”，包括代表类的Class对象的`equals()`方法，`isAssignableFrom()`方法，`isInstance()`方法的返回结果，也包括instanceof判断的情况。
 
-类加载器与instanceof关键字演示
+类加载器与`instanceof`关键字演示
     
     /**
      * 类加载器与instanceof关键字演示
@@ -397,11 +397,11 @@
         return c;
     }
 ```
-上面的代码是**双亲委派模型的实现**，存在于java.lang.ClassLoader的loadClass()方法中：
+上面的代码是**双亲委派模型的实现**，存在于java.lang.ClassLoader的`loadClass()`方法中：
 1. 先检查是否已经**被加载过**。
-2. 没有加载则**调用父类加载器**的loadClass()方法。
+2. 没有加载则**调用父类加载器**的`loadClass(`)方法。
 3. 若父加载器为空，则默认启动启动类加载器作为父加载器。
-4. 父加载器加载失败，抛出ClassNotFoundException异常，并调用自己的findClass()方法进行加载。
+4. 父加载器加载失败，抛出ClassNotFoundException异常，并调用自己的`findClass()`方法进行加载。
 
 #### 7.3.3 破坏双亲委派模型
 
