@@ -136,7 +136,7 @@ The primitive types of the Java programming language other than boolean form the
 >除了boolean之外的数字型基本类型，分为整数类（int）: byte, short, int, long, char和浮点类（flout）: float, double。
 
 The Java virtual machine works with one other primitive type that is unavailable to the Java programmer: the returnAddress type. This primitive type is used to implement finally clauses of Java programs. The use of the returnAddress type is described in detail in Chapter 18, "Finally Clauses."
->Java虚拟机中还由一种基本类型，是returnAddress，这种类型是用来实现finally条款的，在第十八章`Finally Clauses`中会介绍到。（电子版问当没有这个第十八章，只有目录没有内容）
+>Java虚拟机中还有一种基本类型，是returnAddress，这种类型是用来实现finally条款的，在第十八章`Finally Clauses`中会介绍到。（电子版问当没有这个第十八章，只有目录没有内容）
 
 The reference type of the Java virtual machine is cleverly named reference. Values of type reference come in three flavors: the class type, the interface type, and the array type. All three types have values that are references to dynamically created objects. The class type's values are references to class instances. The array type's values are references to arrays, which are full-fledged objects in the Java virtual machine. The interface type's values are references to class instances that implement an interface. One other reference value is the null value, which indicates the reference variable doesn't refer to any object.
 >Java虚拟机的引用类型巧妙地命名为引用。引用类型的值有三种类型：类引用，接口引用，数组引用。数组类型的值是对数组的引用，数组是Java虚拟机中的完整对象。接口类型的值是实现这个接口的类的实例。另一个参考值是空值，表示引用变量不引用任何对象。
@@ -303,7 +303,7 @@ For each type it loads, a Java virtual machine must store a constant pool. A con
 #### Field Information
 
 For each field declared in the type, the following information must be stored in the method area. In addition to the information for each field, the order in which the fields are declared by the class or interface must also be recorded. Here's the list for fields:
->每一个声明过的字段，它的如下（1，2，3）信息都会被存储在常量池中。除此之外，他们的声明顺序也会被记录。
+>每一个声明过的字段，它的如下（1，2，3）信息都会被存储在方法区中。除此之外，他们的声明顺序也会被记录。
 1. The field's name
 2. The field's type
 3. The field's modifiers (some subset of public, private, protected, static, final, volatile, transient)
@@ -709,7 +709,7 @@ The virtual machine stores the same data types in the operand stack that it stor
 >Java虚拟机存在操作数栈中的数据类型跟局部变量中的一样，int，long，float，double，reference，和返回类型。另外，byte，short和char会被转成int并压栈。
 
 Other than the program counter, which can't be directly accessed by instructions, the Java virtual machine has no registers. The Java virtual machine is stack-based rather than register-based because its instructions take their operands from the operand stack rather than from registers. Instructions can also take operands from other places, such as immediately following the opcode (the byte representing the instruction) in the bytecode stream, or from the constant pool. The Java virtual machine instruction set's main focus of attention, however, is the operand stack.
->除了无法通过指令直接访问的程序计数器之外，Java虚拟机没有寄存器。Java虚拟机是基于栈的，而不是基于寄存器（程序计数器）的，因为它的指令从操作数堆栈而不是寄存器中获取操作数。指令也可以从其他地方获取操作数，例如紧跟字节码流中的操作码（表示指令的字节）或来自常量池。然而，Java虚拟机指令集的主要关注点是操作数堆栈。
+>除了程序计数器之外（程序计数器无法通过指令直接访问），Java虚拟机没有其他寄存器。Java虚拟机是基于栈的，而不是基于寄存器（程序计数器）的，因为它的指令从操作数堆栈而不是寄存器中获取操作数。指令也可以从其他地方获取操作数，例如紧跟字节码流中的操作码（表示指令的字节）或来自常量池。然而，Java虚拟机指令集的主要关注点是操作数堆栈。
 
 The Java virtual machine uses the operand stack as a work space. Many instructions pop values from the operand stack, operate on them, and push the result. For example, the iadd instruction adds two integers by popping two ints off the top of the operand stack, adding them, and pushing the int result. Here is how a Java virtual machine would add two local variables that contain ints and store the int result in a third local variable:
 >Java虚拟机使用操作数堆栈作为工作空间。许多指令从操作数栈弹出数据，操作这些数据，然后推送结果（到操作数栈）。举个例子，iadd指令从操作数栈中弹出两个int，然后把他们加到一起，然后推送这个int结果到操作数栈。下面这个例子描述了，Java虚拟机如何把两个包含int的局部变量相加，并存储int返回值在第三个局部变量中：
