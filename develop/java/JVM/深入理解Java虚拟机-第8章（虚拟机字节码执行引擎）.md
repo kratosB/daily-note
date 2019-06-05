@@ -17,7 +17,7 @@
 2. Java程序被编译成class时，方法的**Code属性**的**max_locals数据**项中确定了该方法需要分配的**局部变量表最大容量**。
 3. 局部变量表的容量以slot（也有叫word的）为单位。使用索引（index）来访问元素。
 4. boolean，byte，char，short，int，float，reference，returnAddress都是**一个单位**。
-    > Java虚拟机中还有一种基本类型，是returnAddress，这种类型是用来实现finally条款的
+    >Java虚拟机中还有一种基本类型，是returnAddress，这种类型是用来实现finally条款的
 5. long，double是**两个单位**。占两个连续的slot空间，高位在前。
 6. 虚拟机使用局部变量表完成参数值到参数变量列表的传递过程。
 7. 如果这个方法是**实例方法（非static方法）**，局部变量表的**第0位索引（index）**（内存中的第一个块），是一个对**堆当中的实例的引用**（代码中的`this`，就会用到这个引用）。
@@ -26,14 +26,14 @@
     举个例子，`if()`和`for()`中间的东西，只在两个{}之间有用，出了{}之后就没用了，这些内存就可以重复使用。
     
     还有一个例子
-    ```
+    ```text
     public static void main(String[] args) {
         byte[] placeholder = new byte[64 * 1024 * 1024];
         System.gc();
     }
     ```
     这种情况下，placeholder对象的内存不会被回收。
-    ```
+    ```text
     public static void main(String[] args) {
         {
             byte[] placeholder = new byte[64 * 1024 * 1024];
@@ -42,7 +42,7 @@
     }
     ```
     这种情况下，理论上应该被回收，但是也没有。
-    ```
+    ```text
     public static void main(String[] args) {
         {
             byte[] placeholder = new byte[64 * 1024 * 1024];
@@ -59,9 +59,9 @@
     3. 在第一个例子中，变量placeholder还**在作用域中**。所以局部变量表中还存在这个reference，所以placeholder对象不会被回收。
     4. 在第二个例子中，变量placeholder**不在作用域中了**。但是，之后**没有**对局部变量表的读写操作，所以局部变量表**没变**，局部变量表中还存在这个reference，所以placeholder对象不会被回收。
     5. 在第三个例子中，变量placeholder**不在作用域中了**。同时，`int[] a = 0;`这句代码，对局部变量表**实现了写操作**，由于局部变量表中的slot是**可重用**的，之前reference的那个slot就被`int[] a`占用了。失去了reference的引用之后，通过GC Roots就找不到placeholder对象了，于是GC的时候就把它回收了。
-    > 通过虚拟机JIT编译器优化，并编译成本地代码之后，第二种情况好像也可以回收掉，不过这个例子用来学习原理还是很有意义的。
+    >通过虚拟机JIT编译器优化，并编译成本地代码之后，第二种情况好像也可以回收掉，不过这个例子用来学习原理还是很有意义的。
 9. 局部变量表中的变量，跟类变量有一点区别。类变量会在准备阶段赋予默认值，局部变量表不会。
-    ```
+    ```text
         public static void main(String[] args) {
             int a;
             System.out.println(a);
@@ -79,7 +79,7 @@
 5. 虚拟机把操作数栈作为它的工作区，大多数指令都要从这里弹出数据，执行运算，然后把结果压回操作数栈。
     
     例如，iadd指令就要从操作数栈中弹出两个整数，执行加法运算，其结果又压回到操作数栈中，看看下面的示例，它演示了虚拟机是如何把两个int类型的局部变量相加，再把结果保存到第三个局部变量的：
-    ```
+    ```text
     begin  
     iload_0    // push the int in local variable 0 onto the stack  
     iload_1    // push the int in local variable 1 onto the stack  
@@ -132,7 +132,7 @@
     2. `invokespecial`：调用实例构造器<init>方法，私有方法和父类方法。
 4. 只要能被`invokestatic`和`invokespecial`指令调用的方法，都可以在解析阶段把符号引用转化为直接引用，这些方法被称为**非虚方法**。
     
-    ```
+    ```java
         /**
          * 方法静态解析演示
          *
@@ -150,7 +150,7 @@
          }
     ```
     上面是一个最常见的解析调用的例子，在这个例子中，静态方法sayHello()只可能属于类型StaticResolution。
-    ```
+    ```text
         D:\Develop\>javap -verbose StaticResolution
         public static void main(java.lang.String[]);
           code:
@@ -163,7 +163,7 @@
     ```
     使用javap命令查看这段程序的字节码，会发现的确是通过`invokestatic`命令来调用sayHello()方法的。
 5. Java中的非虚方法，除了使用`invokestatic`和`invokespecial`调用的方法之外，还有一种，就是被final修饰的方法。
-    > 虽然final方法是使用`invokevirtual`指令来调用的，但是由于它无法被覆盖，没有其他版本，所以无须对方法接收者进行多态选择。Java语言规范中明确说明final方法是非虚方法。
+    >虽然final方法是使用`invokevirtual`指令来调用的，但是由于它无法被覆盖，没有其他版本，所以无须对方法接收者进行多态选择。Java语言规范中明确说明final方法是非虚方法。
 
 #### 8.2.2 分派
 
@@ -175,7 +175,71 @@
 
 #####  8.2.2.1 静态分派
 
+先来看一个例子，后面会围绕这个类的方法来**重载（Overload）代码**，以分析虚拟机和编译器确定方法版本的过程。
+```java
+package org.fenixsoft.polymorphic;
 
+/**
+ * 方法静态分派演示
+ */
+public class StaticDispatch {
+
+    static abstract class Human {
+    }
+
+    static class Man extends Human {
+    }
+
+    static class Woman extends Human {
+    }
+
+    public void sayHello(Human guy) {
+        System.out.println("hello,guy");
+    }
+
+    public void sayHello(Man guy) {
+        System.out.println("hello,man");
+    }
+
+    public void sayHello(Woman guy) {
+        System.out.println("hello,woman");
+    }
+
+    public static void main(String[] args) {
+        Human man = new Man();
+        Human woman = new Woman();
+        StaticDispatch staticDispatch = new StaticDispatch();
+        staticDispatch.sayHello(man);
+        staticDispatch.sayHello(woman);
+    }
+}
+```
+运行结果是
+```text
+hello,guy
+hello,guy
+```
+这个代码实际上是在考察读者对**重载**的理解程度，从输出结果可以看出虚拟机选择执行参数类型为`Human`的重载，但是为什么呢？
+1. 上面的代码中的`Human`被称为变量的**静态类型**（static type）或者**外观类型**（apparent type）。
+    1. 静态类型的变化，仅仅在使用时发生，变量本身的**静态类型不会改变**。
+    2. 最终的静态类型，在**编译期可知**。
+    ```text
+    Human man = new Man();
+    man = new Woman();
+    // 静态类型变化
+    staticDispatch.sayHello((Man) man);
+    staticDispatch.sayHello((Woman) man);
+    ```
+2. 后面的`Man`和`Woman`被称为变量的**实际类型**（actual type）。
+    1. 实际类型变化的结果，在**运行期才可确定**，编译器在编译期并不知道实际类型是什么。
+    ```text
+    // 实际类型变化
+    Human man = new Man();
+    man = new Woman();
+    ```
+3. 虚拟机在重载的时候是**通过参数的静态类型**而不是实际类型作为判断依据的。
+    >所以Javac编译器在编译阶段，根据参数的静态类型，选择了sayHello(Human)作为调用目标，并把这个方法的**符号引用**写到main()方法里的两条`invokevirtual`指令的参数中。
+4. 所有依赖静态类型来定位方法执行版本的分派动作，都称为静态分派。（最典型应用就是方法重载）
 
 #####  8.2.2.2 动态分派
 
@@ -192,6 +256,6 @@
 
 ## 参考资料
 
-> 1. 深入理解Java虚拟机第八章
+>1. 深入理解Java虚拟机第八章
 >
-> 2. [栈帧、局部变量表、操作数栈](https://blog.csdn.net/a616413086/article/category/6205912)
+>2. [栈帧、局部变量表、操作数栈](https://blog.csdn.net/a616413086/article/category/6205912)
