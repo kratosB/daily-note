@@ -17,3 +17,7 @@
     1. [Java字节码结构剖析三：方法表](http://www.importnew.com/30521.html)
     2. [Java字节码结构剖析二：字段表](http://www.importnew.com/30505.html)
     3. [Java字节码结构剖析一：常量池](http://www.importnew.com/30461.html)
+
+4. [java方法调用之动态调用多态（重写override）的实现原理——方法表（三）](https://blog.csdn.net/fan2012huan/article/details/51007517)
+
+    今天搜单分派和多分派的时候，找到了这个，写得更详细，除了书上有的东西，好像还有些书上没有的东西，回头有空可以看一下

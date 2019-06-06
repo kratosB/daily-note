@@ -167,87 +167,332 @@
 
 #### 8.2.2 分派
 
-1. 分派调用可能是静态的也可能是动态的，根据分派依据的宗量数可分为单分派和多分派，所以就可以分为四类：
+1. 动态分派和静态分派机制是Java多态实现的原理。
+2. 分派调用可能是静态的也可能是动态的，根据分派依据的宗量（8.2.2.3 单分派与多分派中有介绍）数可分为单分派和多分派，所以就可以分为四类：
     1. 静态单分派。
     2. 静态多分派。
     3. 动态单分派。
     4. 动态多分派。
 
-#####  8.2.2.1 静态分派
+#####  8.2.2.1 静态分派(Method Overload Resolution)
 
-先来看一个例子，后面会围绕这个类的方法来**重载（Overload）代码**，以分析虚拟机和编译器确定方法版本的过程。
-```java
-package org.fenixsoft.polymorphic;
+1. Dispatch这个词一般不用在静态环境，英文文档中的称呼是“Method Overload Resolution”，所以静态分派就是**方法重载解析**？
+2. 先来看一个例子，后面会围绕这个类的方法来**重载（Overload）代码**，以分析虚拟机和编译器确定方法版本的过程。
+    ```java
+    package org.fenixsoft.polymorphic;
 
-/**
- * 方法静态分派演示
- */
-public class StaticDispatch {
-
-    static abstract class Human {
+    /**
+     * 方法静态分派演示
+     */
+    public class StaticDispatch {
+    
+        static abstract class Human {
+        }
+    
+        static class Man extends Human {
+        }
+    
+        static class Woman extends Human {
+        }
+    
+        public void sayHello(Human guy) {
+            System.out.println("hello,guy");
+        }
+    
+        public void sayHello(Man guy) {
+            System.out.println("hello,man");
+        }
+    
+        public void sayHello(Woman guy) {
+            System.out.println("hello,woman");
+        }
+    
+        public static void main(String[] args) {
+            Human man = new Man();
+            Human woman = new Woman();
+            StaticDispatch staticDispatch = new StaticDispatch();
+            staticDispatch.sayHello(man);
+            staticDispatch.sayHello(woman);
+        }
     }
-
-    static class Man extends Human {
-    }
-
-    static class Woman extends Human {
-    }
-
-    public void sayHello(Human guy) {
-        System.out.println("hello,guy");
-    }
-
-    public void sayHello(Man guy) {
-        System.out.println("hello,man");
-    }
-
-    public void sayHello(Woman guy) {
-        System.out.println("hello,woman");
-    }
-
-    public static void main(String[] args) {
+    ```
+    运行结果是
+    ```text
+    hello,guy
+    hello,guy
+    ```
+    这个代码实际上是在考察读者对**重载**的理解程度，从输出结果可以看出虚拟机选择执行参数类型为`Human`的重载，但是为什么呢？
+    1. 上面的代码中的`Human`被称为变量的**静态类型**（static type）或者**外观类型**（apparent type）。
+        1. 静态类型的变化，仅仅在使用时发生，变量本身的**静态类型不会改变**。
+        2. 最终的静态类型，在**编译期可知**。
+        ```text
         Human man = new Man();
-        Human woman = new Woman();
-        StaticDispatch staticDispatch = new StaticDispatch();
-        staticDispatch.sayHello(man);
-        staticDispatch.sayHello(woman);
+        man = new Woman();
+        // 静态类型变化
+        staticDispatch.sayHello((Man) man);
+        staticDispatch.sayHello((Woman) man);
+        ```
+    2. 后面的`Man`和`Woman`被称为变量的**实际类型**（actual type）。
+        1. 实际类型变化的结果，在**运行期才可确定**，编译器在编译期并不知道实际类型是什么。
+        ```text
+        // 实际类型变化
+        Human man = new Man();
+        man = new Woman();
+        ```
+    3. 虚拟机在重载的时候是**通过参数的静态类型**而不是实际类型作为判断依据的。
+        >所以Javac编译器在编译阶段，根据参数的静态类型，选择了sayHello(Human)作为调用目标，并把这个方法的**符号引用**写到main()方法里的两条`invokevirtual`指令的参数中。
+    4. 所有依赖静态类型来定位方法执行版本的分派动作，都称为静态分派。（最典型应用就是方法重载）
+3. 有一种**特殊情况**，重载版本并**不是唯一的**。
+    
+    由于字面量不需要定义，所以字面量没有**显式的静态类型**，它的静态类型，只能通过语言上的规则去理解和推断。
+    
+    ```java
+    package org.fenixsoft.polymorphic;
+    
+    import java.io.Serializable;
+    
+    public class Overload {
+    
+        public static void sayHello(char arg) {
+            System.out.println("hello char");
+        }
+    
+        public static void sayHello(int arg) {
+            System.out.println("hello int");
+        }
+    
+        public static void sayHello(long arg) {
+            System.out.println("hello long");
+        }
+    
+        public static void sayHello(Character arg) {
+            System.out.println("hello Character");
+        }
+    
+        public static void sayHello(Serializable arg) {
+            System.out.println("hello Serializable");
+        }
+    
+        public static void sayHello(Object arg) {
+            System.out.println("hello Object");
+        }
+    
+        public static void sayHello(char... arg) {
+            System.out.println("hello char...");
+        }
+    
+        /**
+         * 1. 输出 hello char
+         * （'a'是一个char类型的数据，自然会找一个参数类型为char的重载方法）
+         * 
+         * 2. 注释掉sayHello(char arg)方法，输出 hello int
+         * （这时候发生了一次类型转换，'a'除了可以代表字符串，还可以代表数字65）
+         * 
+         * 3. 注释掉sayHello(int arg)方法，输出 hello long
+         * （这时发生了两次自动类型转换，'a'转换为整数65之后，进一步转换成长整数65L，匹配了参数类型为long的重载，
+         * 除此之外，还有float和double，顺序是char->int->long->float->double）
+         * 
+         * 4. 注释掉sayHello(long arg)方法，输出 hello Character
+         * （这时发生了一次自动装箱，'a'被包装成它的封装类型java.lang.Character）
+         * 
+         * 5. 注释掉sayHello(Character arg)方法，输出 hello Serializable
+         * （这是因为Serializable是Character类实现的一个接口，自动装箱之后发现还是找不到装箱类，
+         * 但是找到了装箱类实现了的接口类型，所以又发生了一次自动转型）
+         * 
+         * 6. 注释掉sayHello(Serializable arg)方法，输出 hello Object
+         * （char装箱后转型为父类了，如果有多个父类，那么将在继承关系中从下往上搜索，越上层优先级越低）
+         * 
+         * 7. 注释掉sayHello(Object arg)方法，输出 hello char...
+         * （七个重载方法只剩一个了，说明可变参数优先级最低，这时候'a'被当作一个数组元素）
+         */
+        public static void main(String[] args) {
+            sayHello('a');
+        }
     }
-}
-```
-运行结果是
-```text
-hello,guy
-hello,guy
-```
-这个代码实际上是在考察读者对**重载**的理解程度，从输出结果可以看出虚拟机选择执行参数类型为`Human`的重载，但是为什么呢？
-1. 上面的代码中的`Human`被称为变量的**静态类型**（static type）或者**外观类型**（apparent type）。
-    1. 静态类型的变化，仅仅在使用时发生，变量本身的**静态类型不会改变**。
-    2. 最终的静态类型，在**编译期可知**。
-    ```text
-    Human man = new Man();
-    man = new Woman();
-    // 静态类型变化
-    staticDispatch.sayHello((Man) man);
-    staticDispatch.sayHello((Woman) man);
     ```
-2. 后面的`Man`和`Woman`被称为变量的**实际类型**（actual type）。
-    1. 实际类型变化的结果，在**运行期才可确定**，编译器在编译期并不知道实际类型是什么。
-    ```text
-    // 实际类型变化
-    Human man = new Man();
-    man = new Woman();
-    ```
-3. 虚拟机在重载的时候是**通过参数的静态类型**而不是实际类型作为判断依据的。
-    >所以Javac编译器在编译阶段，根据参数的静态类型，选择了sayHello(Human)作为调用目标，并把这个方法的**符号引用**写到main()方法里的两条`invokevirtual`指令的参数中。
-4. 所有依赖静态类型来定位方法执行版本的分派动作，都称为静态分派。（最典型应用就是方法重载）
-
+    上面的代码，演示了编译期间选择静态分派目标的过程，这个过程也是Java语言实现方法重载的本质。
+    
 #####  8.2.2.2 动态分派
 
-
-
+1. 动态分派和多态性中的**重写**（Override）有着很密切的关联。下面来看一个例子。
+    ```java
+    package org.fenixsoft.polymorphic;
+    
+    public class DynamicDispatch {
+    
+        static abstract class Human {
+            protected abstract void sayHello();
+        }
+    
+        static class Man extends Human {
+            @Override
+            protected void sayHello() {
+                System.out.println("man say hello");
+            }
+        }
+    
+        static class Women extends Human {
+            @Override
+            protected void sayHello() {
+                System.out.println("women say hello");
+            }
+        }
+    
+        public static void main(String[] args) {
+            Human man = new Man();
+            Human women = new Women();
+            man.sayHello();
+            women.sayHello();
+            man = new Women();
+            man.sayHello();
+        }
+    }
+    ```
+    运行结果是
+    ```text
+    man say hello
+    women say hello
+    women say hello
+    ```
+    导致这个现象的原因很明显，是这两个变量的**实际类型不同**，Java虚拟机如何根据实际类型来分派方法执行版本呢？使用javap命令输出这段代码的字节码来看看。
+    ```text
+      public static void main(java.lang.String[]);
+        flags: ACC_PUBLIC, ACC_STATIC
+        Code:
+          stack=2, locals=3, args_size=1
+             0: new           #16                 // class org/fenixsoft/polymorphic/DynamicDispatch$Man
+             3: dup
+             4: invokespecial #18                 // Method org/fenixsoft/polymorphic/DynamicDispatch$Man."<init>":()V
+             7: astore_1
+             8: new           #19                 // class org/fenixsoft/polymorphic/DynamicDispatch$Woman
+            11: dup
+            12: invokespecial #21                 // Method org/fenixsoft/polymorphic/DynamicDispatch$Woman."<init>":()V
+            15: astore_2
+            16: aload_1
+            17: invokevirtual #22                 // Method org/fenixsoft/polymorphic/DynamicDispatch$Human.sayHello:()V
+            20: aload_2
+            21: invokevirtual #22                 // Method org/fenixsoft/polymorphic/DynamicDispatch$Human.sayHello:()V
+            24: new           #19                 // class org/fenixsoft/polymorphic/DynamicDispatch$Woman
+            27: dup
+            28: invokespecial #21                 // Method org/fenixsoft/polymorphic/DynamicDispatch$Woman."<init>":()V
+            31: astore_1
+            32: aload_1
+            33: invokevirtual #22                 // Method org/fenixsoft/polymorphic/DynamicDispatch$Human.sayHello:()V
+            36: return
+    ```
+    1. 0-15行是准备动作，建立man和woman的**内存（实例）空间**、调用Man和Woman类型的**实例构造器**，将这两个实例的**引用**存放在**局部变量表**的头两格之中，这个动作也就对应了代码中的这两句：
+        ```text
+        Human man = new Man();
+        Human woman = new Woman();
+        ```
+    2. 之后，16和20句，分别把刚刚创建好的两个对象的引用，**压入操作数栈的栈顶**。
+        1. 这两个对象是将要执行的sayHello()方法的所有者，称为**接收者**（Receiver）。
+    3. 第17和21行是方法调用指令。
+        1. 从字节码角度来看，这两条指令（`invokevirtual`）和参数（常量池中第22项的常量，注释显示这个常量是Human.sayHello()的符号引用）都是**完全一样**的。
+        2. 但是这两个指令的最终执行**目标方法不同**。
+        
+        原因与`invokevirtual`指令有关，具体如下：
+        1. 找到操作数**栈顶的第一个元素**所执行的对象的**实际类型**，记作C。
+        2. 如果在类型C中找到与常量中的**描述符合****简单名称**都相符的方法，则进行访问权限校验，如果通过则返回这个方法的**直接引用**，查找过程结束；如果不通过，则返回java.lang.IllegalAccessError异常。
+        3. 否则，按照继承关系从下往上一次对C的各个父类进行第2步的搜索和验证过程。
+        4. 如果始终没有找到合适的方法，则抛出java.lang.AbstractMethodError异常。
+        
+        根据第一步可以发现，第17行和21行的指令，分别找到了第16行和第20行压入操作数栈的对象的引用。两次调用中的`invokevirtual`指令把常量池中的类方法符号引用**解析到了不同的直接引用上**，这个过程就是Java 语言中方法**重写的本质**。
+    
 #####  8.2.2.3 单分派与多分派
 
+1. 方法的接收者与方法的参数，统称为方法的**宗量**。
+2. 根据分派基于多少种宗量，可以将分派划分为**单分派**和**多分派**。
+    1. 单分派：根据一个宗量对目标方法进行选择。
+    2. 多分派：根据多于一个的宗量对目标方法进行选择。
+    具体例子如下
+    ```java
+    class Dispatch {
+    
+        static class QQ{}
+    
+        static class _360 {}
+    
+        public static class Father {
+            public void hardChoice(QQ arg) {
+                System.out.println("father choose qq");
+            }
+    
+            public void hardChoice(_360 arg) {
+                System.out.println("father choose 360");
+            }
+        }
+    
+        public static class Son extends Father {
+            public void hardChoice(QQ arg) {
+                System.out.println("son choose qq");
+            }
+    
+            public void hardChoice(_360 arg) {
+                System.out.println("son choose 360");
+            }
+        }
+    
+        public static void main(String[] args) {
+            Father father = new Father();
+            Father son = new Son();
+            father.hardChoice(new _360());
+            son.hardChoice(new QQ());
+        }
+    }
+    ```
+    输出结果如下：
+    ```text
+    father choose 360
+    son choose qq
+    ```
+    字节码指令如下所示：
+    ```text
+    public static void main(java.lang.String[]);
+      Code:
+       Stack=3, Locals=3, Args_size=1
+       0:   new     #2; //class Dispatcher$Father
+       3:   dup
+       4:   invokespecial   #3; //Method Dispatcher$Father."<init>":()V
+       7:   astore_1
+       8:   new     #4; //class Dispatcher$Son
+       11:  dup
+       12:  invokespecial   #5; //Method Dispatcher$Son."<init>":()V
+       15:  astore_2
+       16:  aload_1
+       17:  new     #6; //class Dispatcher$_360
+       20:  dup
+       21:  invokespecial   #7; //Method Dispatcher$_360."<init>":()V
+       24:  invokevirtual   #8; //Method Dispatcher$Father.hardChoice:(LDispatcher$_360;)V
+       27:  aload_2
+       28:  new     #9; //class Dispatcher$QQ
+       31:  dup
+       32:  invokespecial   #10; //Method Dispatcher$QQ."<init>":()V
+       35:  invokevirtual   #11; //Method Dispatcher$Father.hardChoice:(LDispatcher$QQ;)V
+       38:  return
+    ```
+    1. 来看看编译阶段编译器的选择过程，即静态分派过程。
+        1. 首先确定方法的接收者，从上面的字节码指令中可以看到，两次方法调用
+            ```text
+            father.hardChoice(new _360());
+            son.hardChoice(new QQ());
+            ```
+            对应的字节码指令都是一样的，只是参数不同而已
+            ```text
+            24:  invokevirtual   #8; //Method Dispatcher$Father.hardChoice:(LDispatcher$_360;)V
+            35:  invokevirtual   #11; //Method Dispatcher$Father.hardChoice:(LDispatcher$QQ;)V
+            ```
+            由此可见，在class文件中都是调用Father的hardChoice()方法。(上面的8.2.2.2 动态分派种的例子，man和women调用的也都是Human.sayHello())
+        2. 然后对于方法参数，一个是_360对象，一个是QQ对象，按照静态类型匹配的原则，自然找到各自的方法。
+        
+        >上面的两步都是在**编译器中**做出的，属于**静态分派**，在选择目标方法时根据了**两个宗量**，是**多分派**的。因此，**静态分派属于多分派类型**。 
+    2. 来看看运行阶段，虚拟机的选择，即动态分派的过程。
+        1. 当java执行时，当执行到`son.hardChoice(new QQ());`，`aload_2`指令发现son的实际类型是Son（第15句压入操作数栈的son的引用），因此会调用Son类中的方法。
+        2. 在执行`father.hardChoice(new _360());`时也有这个过程，只不过father的实际类型就是Father而已。
+        
+        >在目标选择时只依据了**一个宗量**，是**单分派**的。因此，**动态分派属于单分派类型**。
 
+#####  8.2.2.4 虚拟机动态分派的实现
 
 ### 8.3 基于栈的字节码解释执行引擎
 #### 8.3.1 解释执行
@@ -259,3 +504,5 @@ hello,guy
 >1. 深入理解Java虚拟机第八章
 >
 >2. [栈帧、局部变量表、操作数栈](https://blog.csdn.net/a616413086/article/category/6205912)
+>
+>3. [java方法调用之单分派与多分派（二）](https://blog.csdn.net/fan2012huan/article/details/51004615)
