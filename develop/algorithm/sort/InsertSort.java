@@ -26,7 +26,7 @@ public class InsertSort {
             for (k = i; k > j + 1; k--) {
                 a[k] = a[k - 1];
             }
-            a[k ] = b;
+            a[k] = b;
         }
     }
 
@@ -41,18 +41,39 @@ public class InsertSort {
     private void insertSort1(int[] a) {
         for (int i = 1; i < a.length; i++) {
             int index = i;
-            for (int j = i - 1; j >=0 ; j--) {
-                if (a[i]<a[j]) {
+            for (int j = i - 1; j >= 0; j--) {
+                if (a[i] < a[j]) {
                     index = j;
                 } else {
                     break;
                 }
             }
             int value = a[i];
-            for (int j = i-1; j >= index ; j--) {
-                a[j+1] = a[j];
+            for (int j = i - 1; j >= index; j--) {
+                a[j + 1] = a[j];
             }
             a[index] = value;
+        }
+    }
+
+    /**
+     * 自己又写了一遍，跟自己之前写的逻辑基本一致，
+     * 跟教程里比还是差了一点
+     * @param a
+     */
+    private void insertSort2(int[] a) {
+        for (int i = 1; i < a.length; i++) {
+            int temp = a[i];
+            int tempIndex = i;
+            for (int j = i - 1; j >= 0; j--) {
+                if (temp < a[j]) {
+                    a[j + 1] = a[j];
+                    tempIndex = j;
+                } else {
+                    break;
+                }
+            }
+            a[tempIndex] = temp;
         }
     }
 }
