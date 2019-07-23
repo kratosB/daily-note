@@ -10,4 +10,4 @@
 >
 >3. [【java并发核心八】Fork-Join分治编程，这里面有join和get的区别](https://www.cnblogs.com/klbc/p/9797969.html)
 >
->4. 
+>4. [Java多线程系列--“JUC线程池”01之 线程池架构](https://www.cnblogs.com/skywang12345/p/3509903.html)
