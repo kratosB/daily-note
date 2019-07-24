@@ -1,32 +1,32 @@
-# [Ò»ÎÄ¸ã¶® RabbitMQ µÄÖØÒª¸ÅÄîÒÔ¼°°²×°](https://gitee.com/SnailClimb/JavaGuide/blob/master/docs/system-design/data-communication/rabbitmq.md)
+# [ä¸€æ–‡æžæ‡‚ RabbitMQ çš„é‡è¦æ¦‚å¿µä»¥åŠå®‰è£…](https://gitee.com/SnailClimb/JavaGuide/blob/master/docs/system-design/data-communication/rabbitmq.md)
 
-## 1. RabbitMQ½éÉÜ
+## 1. RabbitMQä»‹ç»
 
-### 1.1 RabbitMQ¼ò½é
-### 1.2 RabbitMQºËÐÄ¸ÅÄî
-
-
-
-## 2. °²×°RabbitMQ
-
-### 2.1 °²×°erlang
-### 2.2 °²×°RabbitMQ
+### 1.1 RabbitMQç®€ä»‹
+### 1.2 RabbitMQæ ¸å¿ƒæ¦‚å¿µ
 
 
 
+## 2. å®‰è£…RabbitMQ
+
+### 2.1 å®‰è£…erlang
+### 2.2 å®‰è£…RabbitMQ
 
 
-## ÒýÓÃ
->1. [Ò»ÎÄ¸ã¶® RabbitMQ µÄÖØÒª¸ÅÄîÒÔ¼°°²×°](https://gitee.com/SnailClimb/JavaGuide/blob/master/docs/system-design/data-communication/rabbitmq.md)
+
+
+
+## å¼•ç”¨
+>1. [ä¸€æ–‡æžæ‡‚ RabbitMQ çš„é‡è¦æ¦‚å¿µä»¥åŠå®‰è£…](https://gitee.com/SnailClimb/JavaGuide/blob/master/docs/system-design/data-communication/rabbitmq.md)
 >
->2. [¶ÓÁÐºÍÏûÏ¢¶ÓÁÐÊ²Ã´Çø±ð](https://bbs.csdn.net/topics/392507920)
+>2. [é˜Ÿåˆ—å’Œæ¶ˆæ¯é˜Ÿåˆ—ä»€ä¹ˆåŒºåˆ«](https://bbs.csdn.net/topics/392507920)
 >
->3. [ÎÒÎªÊ²Ã´ÒªÑ¡ÔñRabbitMQ £¬RabbitMQ¼ò½é£¬¸÷ÖÖMQÑ¡ÐÍ¶Ô±È](https://www.sojson.com/blog/48.html)
+>3. [æˆ‘ä¸ºä»€ä¹ˆè¦é€‰æ‹©RabbitMQ ï¼ŒRabbitMQç®€ä»‹ï¼Œå„ç§MQé€‰åž‹å¯¹æ¯”](https://www.sojson.com/blog/48.html)
 >
->4. [RabbitMQµÄËÀÐÅ¶ÓÁÐÏê½â](https://www.jianshu.com/p/986ee5eb78bc)
+>4. [RabbitMQçš„æ­»ä¿¡é˜Ÿåˆ—è¯¦è§£](https://www.jianshu.com/p/986ee5eb78bc)
 >
 >5. [RabbitMQ Tutorials](https://www.rabbitmq.com/getstarted.html)
 >
->6. [SpringBootÕûºÏRabbitMQÖ® µäÐÍÓ¦ÓÃ³¡¾°ÊµÕ½Ò»](https://blog.csdn.net/u013871100/article/details/82982235)
+>6. [SpringBootæ•´åˆRabbitMQä¹‹ å…¸åž‹åº”ç”¨åœºæ™¯å®žæˆ˜ä¸€](https://blog.csdn.net/u013871100/article/details/82982235)
 >
 >
