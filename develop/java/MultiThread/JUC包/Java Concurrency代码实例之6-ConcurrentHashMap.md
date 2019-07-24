@@ -1,11 +1,11 @@
-# Java Concurrency´úÂëÊµÀýÖ®Áù-ConcurrentHashMap
+# Java Concurrencyä»£ç å®žä¾‹ä¹‹å…­-ConcurrentHashMap
 
 
 
-# ²Î¿¼×ÊÁÏ
+# å‚è€ƒèµ„æ–™
 
->1. [Java Concurrency´úÂëÊµÀýÖ®Áù-ConcurrentHashMap](https://zhuanlan.zhihu.com/p/28618718)
+>1. [Java Concurrencyä»£ç å®žä¾‹ä¹‹å…­-ConcurrentHashMap](https://zhuanlan.zhihu.com/p/28618718)
 >
->2. [1ÖÐÄÇ¸öÂ¥Ö÷Ð´µÄJUCµÄ½Ì³Ì£¬Ò»¹²ÓÐ1-8](https://www.zhihu.com/people/wang-du-du-43-1/posts?page=2)
+>2. [1ä¸­é‚£ä¸ªæ¥¼ä¸»å†™çš„JUCçš„æ•™ç¨‹ï¼Œä¸€å…±æœ‰1-8](https://www.zhihu.com/people/wang-du-du-43-1/posts?page=2)
 >
 >3. 
