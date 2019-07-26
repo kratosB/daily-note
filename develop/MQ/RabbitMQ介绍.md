@@ -104,7 +104,7 @@ topic类型的Exchange在匹配规则上进行了扩展，它与direct类型的E
 2. binding key与routing key一样也是句点号“.”分隔的字符串。
 3. binding key中可以存在两种特殊字符“*”与“#”，用于做模糊匹配，其中“*”用于匹配一个单词，“#”用于匹配多个单词（可以是零个）。
 
-![direct](https://cdn.www.sojson.com/file/doc/5932090818)
+![topic](https://cdn.www.sojson.com/file/doc/7685815932)
 
 以上图中的配置为例，
 1. routingKey=”quick.orange.rabbit”的消息会同时路由到Q1与Q2。
