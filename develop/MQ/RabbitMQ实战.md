@@ -1,12 +1,19 @@
-# RabbitMQÊµÕ½
+# [RabbitMQå®æˆ˜ - RabbitMQæ•™ç¨‹æ€»ç»“](https://www.jianshu.com/p/a6460b4b155f)
 
-## ÒıÓÃ
+1. [HelloWorld](https://www.jianshu.com/p/36a328ff8a6b)
+>ä¸»è¦é€šè¿‡Hello Wordå¯¹RabbitMQæœ‰åˆæ­¥è®¤è¯†
+
+2. 
+
+## å¼•ç”¨
 >1. [RabbitMQ](https://www.jianshu.com/p/64357bf35808)
 >
->2. [RabbitMQ ¿ìËÙÈëÃÅ](https://www.jianshu.com/p/b3d9e189323c)
+>2. [RabbitMQ å¿«é€Ÿå…¥é—¨](https://www.jianshu.com/p/b3d9e189323c)
 >
->3. [×îÈ«ÃæÍ¸³¹µÄRabbitMQÖ¸ÄÏ](https://www.jianshu.com/p/3e76a144bebd)
+>3. [æœ€å…¨é¢é€å½»çš„RabbitMQæŒ‡å—](https://www.jianshu.com/p/3e76a144bebd)
 >
->4. [RabbitMQ½Ì³Ì×Ü½á](https://www.jianshu.com/p/a6460b4b155f)
+>4. [RabbitMQæ•™ç¨‹æ€»ç»“ - è¿™ä¸ªå°±æ˜¯RabbitMQ Tutorialsçš„ç¿»è¯‘](https://www.jianshu.com/p/a6460b4b155f)
 >
->5. [ÏûÏ¢¶ÓÁĞÖ® RabbitMQ](https://www.jianshu.com/p/79ca08116d57)
+>5. [RabbitMQ Tutorials](https://www.rabbitmq.com/getstarted.html)
+>
+>6. [æ¶ˆæ¯é˜Ÿåˆ—ä¹‹ RabbitMQ](https://www.jianshu.com/p/79ca08116d57)
