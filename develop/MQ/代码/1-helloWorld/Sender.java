@@ -1,10 +1,8 @@
-package rabbitmq;
+import java.nio.charset.StandardCharsets;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * Created on 2019/7/28.
