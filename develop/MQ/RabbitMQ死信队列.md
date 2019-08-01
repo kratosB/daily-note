@@ -40,9 +40,11 @@
 ## 6. 运行说明
 
 1. 启动消费端，此时查看管控台，新增了两个Exchange，两个Queue。在`test_dlx_queue`上我们设置了DLX，也就代表死信消息会发送到指定的Exchange`dlx.exchange`上，最终其实会路由到`dlx.queue`上。
+    
     ![1](https://upload-images.jianshu.io/upload_images/14795543-76d69a56ef1ad6a7.png)
 2. 启动生产端，查看管控台队列的消息情况，`test_dlx_queue`的值为1，而`dlx_queue`的值为0。
 3. 10s后的队列结果如图，由于生产端发送消息时指定了消息的过期时间为10s，而此时没有消费端进行消费，消息便被路由到死信队列中。
+    
     ![2](https://upload-images.jianshu.io/upload_images/14795543-2c020cefbd1820ce.png)
 4. 然后被监听死信队列的消费者处理，消费者输出消息详细信息。
 
