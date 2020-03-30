@@ -341,6 +341,125 @@
 
 ## 15，答疑文章（一）：日志和索引相关问题
 
+### 日志相关问题
+
+1. 两段式提交（redo log prepare--1-->写binlog--2-->redo log commit）,在1和2两个阶段MySQL异常，怎么保证数据完整性。
+    1. 在1的阶段crash，则直接回滚。
+    2. 在2的阶段crash，奔溃恢复的时候事务会被提交。
+    >崩溃恢复判断规则
+    >1. 如果redo log里面的事务是完整的，也就是已经有了commit标识，则直接提交。（上述没有这种情况）
+    >2. 如果redo log里面的事务只有完整的prepare，则判断对应的事务binlog是否存在并完整：
+    >   1. 如果是，则提交事务。
+    >   2. 如果不是，则回滚。
+    
+    >上面"在2的阶段crash"就是2a的情况。
+2. 追问1：MySQL怎么知道binlog是完整的?
+    1. 一个事务的binlog是有完整格式的。
+3. 追问2：redo log 和 binlog是怎么关联起来的?
+    1. 它们有一个共同的数据字段，叫XID。
+    2. 崩溃恢复的时候，会按顺序扫描redo log:
+        1. 碰到既有prepare、又有commit的redo log，就直接提交。
+        2. 碰到只有prepare、而没有commit的redo log，就拿着XID去binlog找对应的事务。
+4. 追问3：MySQL为什么要设计成redo log prepare + binlog就能恢复数据？
+    1. 因为binlog已经写入，所以从库可能已经有这个数据了，采用恢复策略是为了保证主从一致性。
+5. 追问4：为什么要两阶段提交呢?干脆先redo log写完，再写binlog。崩溃恢复的时候，必须得两个日志都完整才可以。
+    1. 两阶段提交是经典的分布式系统问题，并不是MySQL独有的。
+    2. 如果redo log直接提交，那么就没法回滚。这时候如果binlog写入失败，就会造成redo log和binlog不一致。
+    3. 两段式提交可以保证数据一致性。
+6. 追问5：只用binlog来支持崩溃恢复，又能支持归档，不就可以了。为什么要引入两个日志？
+    1. binlog不支持崩溃恢复。（原因帖子里有，比较复杂，这边不写了，而且没太看懂）
+    2. 如果使用优化过的binlog，来记录数据页的更改，实现支持崩溃恢复，那其实就是做了一个redo log。
+    3. 文章里没写，但是我觉得应该还有这个因素，redo log支持事务。
+7. 追问6：那能不能反过来，只用redo log，不要binlog?
+    >redo log好像是类似snapshot，binlog类似backup。不确定。
+    1. 从cash-safe角度来看可以。（没看懂，不明白两个日志有啥区别）
+    2. redo log起不到归档作用。
+    3. MySQL高可用基础就是binlog。
+8. redo log一般设置多大？
+    1. redo log太小会导致很快写满，经常强行刷redo log。一般建议至少4个1g的文件。
+9. 数据最终落盘，是redo log来的还是buffer pool。
+    1. 刷脏页落盘跟redo log没关系。
+    2. crash恢复时，innodb如果判断到一个数据页可能在崩溃恢复的时候丢失了更新，会先从磁盘读到内存，然后结合redo log更新内存内容。更新完后，内存页变脏页，等于回到上面一种状态。
+10. redo log buffer是什么？是先修改内存，还是先写redo log文件？
+    1. 一个事务的更新过程中，日志可能要写多次的。就先写在redo log buffer，commit的时候再写入redo log。
+
+### 业务设计问题
+
+```text
+业务上有这样的需求，A、B两个用户，如果互相关注，则成为好友。
+设计上是有两张表，一个是like表，一个是friend表。
+like表有user_id、liker_id两个字段，我设置为复合唯一索引即uk_user_id_liker_id。
+语句执行逻辑是这样的：
+
+以A关注B为例：
+第一步，先查询对方有没有关注自己（B有没有关注A）
+select * from like where user_id = B and liker_id = A;
+
+如果有，则成为好友
+insert into friend;
+
+没有，则只是单向关注关系
+insert into like;
+
+但是如果A、B同时关注对方，会出现不会成为好友的情况。
+因为上面第1步，双方都没关注对方。第1步即使使用了排他锁也不行，因为记录不存在，行锁无法生效。
+请问这种情况，在MySQL锁层面有没有办法处理？
+
+这个题目的问题是，
+在并发场景下，同时有两个人，设置为关注对方，就可能导致无法成功加为朋友关系。
+因为判断的时候，查到对方没有like己方，所以各自插入一条like，没有插入friend。
+```
+1. 我个人理解:
+    1. 先insert like。
+    2. 再查有没有对面对我的like。
+    3. 根据查询结果，判断要不要insert friend。
+2. 文档里的方法：
+    1. 首先，要给“like”表增加一个字段，比如叫作 relation_ship，并设为整型，取值1、2、3。
+        1. 1表示user_id关注liker_id;
+        2. 2表示liker_id关注user_id;
+        3. 3表示互相关注;
+    2. 然后，在A关注B发生的时候，先判断A和B的大小，小的放在user_id，大的放在like_id。
+        >* 这样无论A关注B，还是B关注A，在库里的顺序都是一样的。所以当AB同时操作时，有一个操作会触发锁，用insert ... on duplicate语句就可以实现更新。
+        >* 不过这样查询是不是得查两列？
+
+## 16，“order by”是怎么工作的？
+
+`select city,name,age from t where city='杭州' order by name limit 1000;`假设要执行这个语句。
+
+1. 全字段排序（用全部待返回字段排序）
+    1. 初始化sort_buffer，确定放入name、city、age这三个字段。
+    2. 从索引city找到第一个满足city='杭州’条件的主键id。
+    3. 到主键id索引取出整行，取name、city、age三个字段的值，存入sort_buffer中。
+    4. 从索引city取下一个记录的主键id。
+    5. 重复步骤3、4直到city的值不满足查询条件为止。
+    6. 对sort_buffer中的数据按照字段name做快速排序。
+    7. 按照排序结果取前1000行返回给客户端。
+    
+    其中第六步的”按照name排序“，如果数据量太大/sort_buffer_size不够大，会用到磁盘或其他外部资源。（还会拆分文件，文章中有具体介绍，太复杂略）
+    
+    如果单行过大，也会影响数据量的大小。（很好理解，10*100行和100*199行明显不一样）
+2. rowid排序  
+    1. 初始化sort_buffer，确定放入两个字段，即name和id。
+    2. 从索引city找到第一个满足city='杭州’条件的主键id。
+    3. 到主键id索引取出整行，取name、id这两个字段，存入sort_buffer中。
+    4. 从索引city取下一个记录的主键id。
+    5. 重复步骤3、4直到不满足city='杭州’条件为止。
+    6. 对sort_buffer中的数据按照字段name进行排序。
+    7. 遍历排序结果，取前1000行，并按照id的值回到原表中取出city、name和age三个字段返回。
+    
+    `max_length_for_sort_data`修改这个参数，可以只用要排序的列（这里是name）和主键id排序。
+3. 全字段排序 VS rowid排序
+4. 
+5. 
+
+## 17，如何正确地显示随机消息？
+
+
+## 18，为什么这些SQL语句逻辑相同，性能却差异巨大？
+
+
+## 19，为什么我只查一行的语句，也执行这么慢？
+
 
 
 
