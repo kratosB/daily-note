@@ -424,7 +424,7 @@ insert into like;
 
 ## 16，“order by”是怎么工作的？
 
-`select city,name,age from t where city='杭州' order by name limit 1000;`假设要执行这个语句。
+`select city,name,age from t where city='杭州' order by name limit 1000;`假设要执行这个语句。索引是`index city (city)`。
 
 1. 全字段排序（用全部待返回字段排序）
     1. 初始化sort_buffer，确定放入name、city、age这三个字段。
@@ -448,14 +448,51 @@ insert into like;
     7. 遍历排序结果，取前1000行，并按照id的值回到原表中取出city、name和age三个字段返回。
     
     `max_length_for_sort_data`修改这个参数，可以只用要排序的列（这里是name）和主键id排序。
+    
+    对比全字段排序流程你会发现，rowid排序多访问了一次表t的主键索引，就是步骤7。
 3. 全字段排序 VS rowid排序
-4. 
-5. 
+    1. MySQL的设计思想：尽量多利用内存，尽量减少磁盘访问。
+    2. 全字段排序需要更多内存（如果内存不够，会借用磁盘），但是少回表一次。
+    3. rowid排序需要内存更小，排序数量更多，但是需要一次多余的回表（造成多余的磁盘读）。
+4. 优化方法
+    1. MySQL排序成本高，可以使用有序的数据（联合索引）。上面的例子中，如果表中的索引不是`index city (city)`而是`index city_name(city, name)`，那么获取到的数据就是有序的，整个执行流程就会改变。
+        1. 从索引(city,name)找到第一个满足city='杭州’条件的主键id。
+        2. 到主键id索引取出整行，取name、city、age三个字段的值，作为结果集的一部分直接返回。
+        3. 从索引(city,name)取下一个记录主键id。
+        4. 重复步骤2、3，直到查到第1000条记录，或者是不满足city='杭州’条件时循环结束。
+        
+        这种场景下，不需要临时表，不需要排序，也不需要额外的回表。
+    2. 使用覆盖索引，可以比上面的方法少一次回表。把索引改成`index city_user_age(city, name, age)`，新的流程如下。
+        1. 从索引(city,name,age)找到第一个满足city='杭州’条件的记录，取出其中的city、name和age这三个字段的值，作为结果集的一部分直接返回。
+        2. 从索引(city,name,age)取下一个记录，同样取出这三个字段的值，作为结果集的一部分直接返回。
+        3. 重复执行步骤2，直到查到第1000条记录，或者是不满足city='杭州’条件时循环结束。
+        
+        这种场景，比上面的方法少一次回表。不过这种场景也不是必要的，因为索引还是有维护代价的。这是一个需要权衡的决定。
+5. 课后习题
+    1. 问题：假设你的表里面已经有了city_name(city, name)这个联合索引，然后你要查杭州和苏州两个城市中所有的市民的姓名，并且按名字排序，显示前100条记录。如果SQL查询语句是这么写的：`select * from t where city in ('杭州',"苏州") order by name limit 100;` 
+        1. 这个语句执行的时候会有排序过程吗？
+        2. 需要实现一个在数据库端不需要排序的方案，怎么实现呢？
+        3. 如果有分页需求，要显示第101页，也就是说语句最后要改成 “limit 10000,100”，怎么实现呢？
+    2. 答案
+        1. 有排序过程，因为索引上city-name有序，但是name是无序的，很好理解。
+        2. 两个方案：
+            1. `select * from t where city = '杭州' limit 100;` + `select * from t where city = '苏州' limit 100;`，然后java内存排序。
+            2. 直接`select * from ( select * from t where city = '杭州' limit 100 union all select * from t where city = '苏州' limit 100 ) as tt order by name limit 100`，跟第一种原理其实一样，就是java排序和MySQL排序。
+        3. 两个方案：
+            1. 为了意义不大的功能优化，可能会得不偿失。建议砍掉这个不实用的功能。
+            2. `select id,name from t where city="杭州" order by name limit 10100;` + `select id,name from t where city="苏州" order by name limit 10100。`，然后java内存排序name，获取对应id，再用`where id in()`来查。
+                
+                这个答案让人失望，其实本质上跟上面的分页取前100没啥区别（以为会有其他骚操作），无非数据量多了不好处理，多了个id回表，很好理解。
+            
+## 17，如何正确地显示随机消息？（MySQL中随机取几个值）
 
-## 17，如何正确地显示随机消息？
+感觉不是很重要，没仔细看，略
 
+## 18，为什么这些SQL语句逻辑相同，性能却差异巨大？（三个案例）
 
-## 18，为什么这些SQL语句逻辑相同，性能却差异巨大？
+1. 条件字段函数操作
+2. 隐式类型转换
+3. 隐式字符编码转换
 
 
 ## 19，为什么我只查一行的语句，也执行这么慢？
