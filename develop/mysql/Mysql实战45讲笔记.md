@@ -488,15 +488,48 @@ insert into like;
 
 感觉不是很重要，没仔细看，略
 
-## 18，为什么这些SQL语句逻辑相同，性能却差异巨大？（三个案例）
+## 18，为什么这些SQL语句逻辑相同，性能却差异巨大？（对索引字段做函数操作的三个案例）
 
 1. 条件字段函数操作
-2. 隐式类型转换
-3. 隐式字符编码转换
 
+    `select count(*) from tradelog where month(t_modified)=7;`这个语句，t_modified上有索引，但不会走**树搜索功能**。
+    1. 对索引字段做函数操作，可能会破坏索引值的有序性，因此优化器就决定放弃走**树搜索功能**。
+        >即使`select * from tradelog where id + 1 = 10000`这种不影响有序性的，也不会走**树搜索功能**。
+    2. 虽然不走**树搜索功能**，但还是会走索引的，这里优化器会选择`遍历主键索引`或者`遍历t_modified索引`，因为t_modified索引更小，所以会选择后者。
+    3. 又因为count直接可以在索引上完成，所以这里会走覆盖索引，不回表。
+    4. 应该改成类似`select count(*) from tradelog where (t_modified>='2016-07-01' and t_modified<='2016-08-01') or (t_modified>='2017-07-01' and t_modified<='2017-08-01');`这种语句，就可以走**树搜索功能**。
+2. 隐式类型转换
+
+    再来看`select * from tradelog where tradeid=110717;`这个语句，tradeid有索引，但是查询走全表扫描。因为tradeid在表里的类型是varchar(32)，可查询输入的是整型，需要做类型转换。
+    1. 在MySQL中，字符串和数字做比较的话，是将字符串转换成数字。
+    2. 根据上面（2-i）的理论，上面那个例子等于`select * from tradelog where CAST(tradid AS signed int) = 110717;`，这里中了本章第1点的《条件字段函数操作》，放弃走**树搜索功能**。
+    3. 根据上面（2-i）的理论，`select * from tradelog where id="83126";`等于`select * from tradelog where id=83126;`，可以走**树搜索功能**。
+3. 隐式字符编码转换
+    
+    这次在老表`tradelog`（utf8mb4）的基础上，又增加了新表`trade_detail`（utf8）。其中id，tradeid啥的都有索引。
+    
+    新的语句如下`select d.* from tradelog l, trade_detail d where d.tradeid=l.tradeid and l.id=2;`，这个查询也有问题。
+    1. explain的结果如下：
+        1. 第一行显示优化器会先在交易记录表tradelog上查到id=2的行，这个步骤用上了主键索引，rows=1表示只扫描一行。
+        2. 第二行key=NULL，表示没有用上交易详情表trade_detail上的tradeid索引，进行了全表扫描。
+    2. 为什么3-i-b进性全表扫描呢
+        1. 首先，我们把第二行单独改成SQL，就是`select * from trade_detail where tradeid=$L2.tradeid.value;`。
+        2. 我们再来看，`tradelog`是utf8mb4的，`trade_detail`是utf8的，字符集utf8mb4是utf8的超集。这里又因为本章第2点的《隐式类型转换》，他们对比的时候，MySQL先把utf8转化成utf8mb4。
+        3. 转换完的语句如下`select * from trade_detail where CONVERT(traideid USING utf8mb4)=$L2.tradeid.value;`，很明显，又中了本章第1点的《条件字段函数操作》，所以就走全表扫描了。
+        4. 作为对比，`select l.operator from tradelog l, trade_detail d where d.tradeid=l.tradeid and d.id=4;`，这个语句就可以正确走索引和树搜索功能。
+            
+            这里的语句第一步是找对应的trade_detail，按照utf8->utf8mb4的转换的规则，第二步可以被写成`select operator from tradelog where traideid =CONVERT($R4.tradeid.value USING utf8mb4);`，参数上的函数，影响查询。
+        5. 原语句的优化有两种方案
+            1. 直接把`trade_detail`改成utf8mb4。
+            2. `select d.* from tradelog l , trade_detail d where d.tradeid=CONVERT(l.tradeid USING utf8) and l.id=2;`
 
 ## 19，为什么我只查一行的语句，也执行这么慢？
 
+1. 查询长时间不返回
+    1. 等MDL锁
+    2. 等flush
+    3. 等行锁
+2. 查询慢
 
 
 
