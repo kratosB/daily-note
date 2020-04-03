@@ -522,14 +522,38 @@ insert into like;
         5. 原语句的优化有两种方案
             1. 直接把`trade_detail`改成utf8mb4。
             2. `select d.* from tradelog l , trade_detail d where d.tradeid=CONVERT(l.tradeid USING utf8) and l.id=2;`
-
+4. 课后习题
+    
+    挺有意思，不过太复杂，不写了。
+    
 ## 19，为什么我只查一行的语句，也执行这么慢？
 
 1. 查询长时间不返回
     1. 等MDL锁
+        1. 找到谁持有MDL写锁，然后把它kill掉。
+            >文章里讲了怎么找。
     2. 等flush
+        1. flush通常很快，有可能是被别的线程堵住了。可以用的show processlist，找到对应的请求，kill掉。
     3. 等行锁
+        1. 找到迟迟不释放锁的线程，kill连接（断开自动释放锁）。
 2. 查询慢
+    1. 主键索引全表扫描的查询
+        1. 建议`set long_query_time=0;`把所有语句记录到slow log里。通过慢查询日志，发现全表扫描的查询，优化索引。
+    2. `select * from t where id=1;`
+        
+        `select * from t where id=1 lock in share mode;`
+        
+        上面这个查询用了800ms，下面这个只用了1ms。因为这时候边上有另一个线程把id=1这一行更新了100w次（假设）。`in share mode`是当前读，直接返回数值。而一致性视图读，需要把当前结果结合100w个undo log做运算，所以就很慢。
+
+3. 课后习题
+    1. 问题：`begin;select * from t where c=5 for update;commit;`，这个语句怎么加锁，怎么释放。
+    2. 答案：RC隔离级别下，锁全表记录。RR隔离级别下，锁全表记录+GAP。具体细节20章会讲到。
+
+## 20，幻读是什么，幻读有什么问题？（还包括gap锁）
+
+
+
+
 
 
 
