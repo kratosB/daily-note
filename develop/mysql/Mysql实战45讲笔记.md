@@ -638,10 +638,12 @@ insert into like;
         3. 2 - 每次事务提交时都只是把redo log写到page cache。
     4. innodb有一个后台线程，每隔1秒，会把redo log buffer的日志，调用write写到page cache，然后调用fsync持久化到磁盘。
         >事务执行中间过程的redo log也是直接写在redo log buffer中的，也会被后台线程一起持久化到磁盘。（一个没有提交的事务的redo log，也是可能已经持久化到磁盘的。）
-    5. redo log buffer写了`innodb_log_buffer_size`一半的时候，会触发write，但是不触发fsync，数据在page cache。
-    6. 如果`innodb_flush_log_at_trx_commit=1`，事务B提交的时候，会把事务A写在buffer的内容顺便持久化到磁盘。
-    7. 
-    8. 
+    5. 即使没提交，redo log buffer写了`innodb_log_buffer_size`一半的时候，会触发write，但是不触发fsync，数据在page cache。
+    6. 即使没提交，如果`innodb_flush_log_at_trx_commit=1`，事务B提交的时候，会把事务A写在buffer的内容顺便持久化到磁盘。
+    7. 如果`innodb_flush_log_at_trx_commit=1`，redo log在prepare的时候就会持久化。然后commit的时候就不需要fsync了，指挥write到page cache。
+        >我觉得应该是数据已经持久化了，标签是prepare，然后write到page cache里面的是把标签改成commit，不需要立即磁盘化，每秒一次的后台线程会持久化这个标签。个人理解。
+    8. 使用组提交（group commit）来解决TPS过高的情况。（按照一次提交redo log和binlog都刷盘来看，一次提交2次刷盘，那么20000的TPS就要刷盘40000次，组提交可以大大减少）
+        >其实我觉得就跟顺带提交差不多。
     9. 
 
 ## 24，MySQL是怎么保证主备一致的？
