@@ -320,7 +320,7 @@
         >因为支持事务，默认的隔离级别是可重复读。通过多版本并发控制（MVCC）实现。同一时刻每个会话看到的count都不一样，所以需要计算。
         
         >不过innodb优化了count(*)，MySQL优化器会找到最小的那棵树来遍历（因为每颗索引树上的节点数是一样的，无非数据长短不一样）。
-2. `show table status`命令的行数只是估算，不准确。
+2. `show table stat``us`命令的行数只是估算，不准确。
 3. 其他方式：
     1. 用缓存系统保存计数（新增+1，删除-1）。
         1. 缓存可能会丢失。
@@ -372,7 +372,7 @@
     3. 文章里没写，但是我觉得应该还有这个因素，redo log支持事务。
 7. 追问6：那能不能反过来，只用redo log，不要binlog?
     >redo log好像是类似snapshot，binlog类似backup。不确定。
-    1. 从cash-safe角度来看可以。（没看懂，不明白两个日志有啥区别）
+    1. 从crash-safe角度来看可以。（没看懂，不明白两个日志有啥区别）
     2. redo log起不到归档作用。
     3. MySQL高可用基础就是binlog。
 8. redo log一般设置多大？
@@ -642,13 +642,58 @@ insert into like;
     6. 即使没提交，如果`innodb_flush_log_at_trx_commit=1`，事务B提交的时候，会把事务A写在buffer的内容顺便持久化到磁盘。
     7. 如果`innodb_flush_log_at_trx_commit=1`，redo log在prepare的时候就会持久化。然后commit的时候就不需要fsync了，指挥write到page cache。
         >我觉得应该是数据已经持久化了，标签是prepare，然后write到page cache里面的是把标签改成commit，不需要立即磁盘化，每秒一次的后台线程会持久化这个标签。个人理解。
-    8. 使用组提交（group commit）来解决TPS过高的情况。（按照一次提交redo log和binlog都刷盘来看，一次提交2次刷盘，那么20000的TPS就要刷盘40000次，组提交可以大大减少）
-        >其实我觉得就跟顺带提交差不多。
-    9. 
+3. 组提交（group commit）
+    1. 解决TPS过高的情况。（按照一次提交redo log和binlog都刷盘来看，一次提交2次刷盘，那么20000的TPS就要刷盘40000次，组提交可以大大减少）
+        >其实我觉得就跟顺带提交差不多。具体细节见文章。
+    2. 为了让组提交效果更好，两段式提交`redolog prepare->写binlog->commit`的实现实际上是`redolog prepare write->binlog write->redolog prepare fsync->binlog fsync->redolog commit write`这样的。
+        >在这种情况下，如果多个事务的binlog写完了，binlog实际上也是一起持久化了，见少IOPS消耗。
+    3. `binlog_group_commit_sync_delay`表示延迟多少微秒后才调用fsync。
+    4. `binlog_group_commit_sync_no_delay_count`表示累积多少次以后才调用fsync。
+    5. 这两个条件是或的关系，只要有一个满足条件就会调用fsync。所以`delay`设置为0的时候，`count`就无所谓了。
+4. WAL机制主要得益于两个方面
+    1. redo log 和 binlog都是顺序写，磁盘的顺序写比随机写速度要快。
+    2. 组提交机制，可以大幅度降低磁盘的IOPS消耗。
+5. 如果MySQL出现了性能瓶颈，而且瓶颈在IO，可以通过哪些方法来提升性能呢？
+    1. 设置`binlog_group_commit_sync_delay`和`binlog_group_commit_sync_no_delay_count`，减少binlog写盘次数。缺点：增加语句相应时间。
+    2. 设置`sync_binlog`为大于1的值（通常100-1000）。缺点：停电丢binlog日志。
+    3. 设置`innodb_flush_log_at_trx_commit`为2。缺点：停电丢redo log数据。
+    * 不建议`innodb_flush_log_at_trx_commit`设置成0，风险太大，设置程2性能差不多，风险小很多。
 
-## 24，MySQL是怎么保证主备一致的？
+## 24，MySQL是怎么保证主备一致的？(介绍binlog)
 
-
+1. 主从备份流程。
+    1. 主库与备库建立长连接，启动dump_thread专门服务备库。
+    2. 备库启动io_thread和sql_thread，io_thread与主库连接。
+    3. 主库校验用户名密码后，读本地binlog，发给备库。
+    4. 备库拿到binlog，写到本地，叫做中转日志（relay log）。
+    5. 备库sql_thread读取中转日志，解析命令，执行。
+2. binlog的三种格式对比。
+    1. statement：
+        1. 特点：记录了真实执行的语句。
+        2. 优点：节约空件。
+        3. 缺点：有时候不够精确，导致主备不一致(比如带条件和limit的delete语句）。
+    2. row：
+        1. 特点：没有原文，换成了各种event。
+        2. 优点：比statement更精确（可以用于数据恢复）。
+        3. 缺点：占空间，耗IO。
+    3. mixed：
+        1. 特点：MySQL自动判断语句是否会导致主备不一致，会的话用row，不会则用statement。
+        2. 优点：灵活，节约空件。
+        3. 缺点：不能用于数据恢复。
+    >建议至少设置成mixed，最好row。
+3. 恢复数据。
+    1. row格式下：delete的binlog会记录整行信息，恢复直接把delete改成insert就行了。
+    2. row格式下：insert的binlog会记录所有字段信息，可以精确定位插入的那一行，直接delete就行了。
+    3. row格式下：update的binlog会记录修改前后的两行数据的信息，直接对调信息再update就行了。
+    >注意，就算是statement模式，也不能直接复制binlog的语句执行，因为类似current_time之类的依赖于其他上下文的数据会有影响。对于这些数据，binlog中也有记录，要用工具解析之后再执行。
+4. 循环复制问题（互为主备的模式）。
+    1. 面临的问题。
+        1. A的binlog发给B，B执行完后生成自己的binlog发给A，A又继续执行，如此循环。
+    2. 解决方法。
+        1. 两个库的server id必须不同。
+        2. 备库接到binlog并在重放的过程中，生成与原binlog的server id相同的新的binlog。
+        3. 每个库收到主库发过来的日志后，先判断server id。如果跟自己的相同，表示这个日志是自己生成的，直接丢弃这个日志。
+5. 
 
 
 
