@@ -408,10 +408,19 @@
     1. getState()
     2. setState()
     3. compareAndSetState()
+3. AQS类实现的是一些排队和阻塞的机制。
+    1. 比如具体线程等待队列的维护。
+    2. 内部使用了一个先进先出（FIFO）的双端队列，并使用了两个指针head和tail用于标识队列的头部和尾部。
+    3. 但它并不是直接储存线程，而是储存拥有线程的Node节点。
 
 #### 11.3 资源共享模式
 
-
+1. 资源有两种共享模式，或者说两种同步方式：
+    1. 独占模式（Exclusive）：资源是独占的，一次只能一个线程获取。如ReentrantLock。
+    2. 共享模式（Share）：同时可以被多个线程获取，具体的资源个数可以通过参数指定。如Semaphore/CountDownLatch。
+2. AQS有一个内部类Node，通过Node我们可以实现两个队列：
+    1. 通过prev和next实现CLH队列(线程同步队列,双向队列)。
+    2. 二是nextWaiter实现Condition条件上的等待线程队列(单向队列)，这个Condition主要用在ReentrantLock类中。
 
 #### 11.4 AQS的主要方法源码解析
 
