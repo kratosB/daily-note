@@ -1,3 +1,5 @@
+package develop.mq.topics5;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -9,13 +11,13 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
 
 /**
- * Created on 2019/7/30.
+ * Created on 2019/7/31.
  *
  * @author zhiqiang bao
  */
 public class Receiver {
 
-    private static final String EXCHANGE_NAME = "direct_logs";
+    private static final String EXCHANGE_NAME = "topic_logs";
 
     public static void main(String[] argv) throws Exception {
         ConnectionFactory connectionFactory = new ConnectionFactory();
@@ -23,7 +25,7 @@ public class Receiver {
         Connection connection = connectionFactory.newConnection();
         Channel channel = connection.createChannel();
 
-        channel.exchangeDeclare(EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
+        channel.exchangeDeclare(EXCHANGE_NAME, BuiltinExchangeType.TOPIC);
         String queueName = channel.queueDeclare().getQueue();
 
         System.out.println(" Please input something: ");
@@ -33,6 +35,7 @@ public class Receiver {
 
         for (String severity : split) {
             channel.queueBind(queueName, EXCHANGE_NAME, severity);
+            System.out.println(" Binding, queueName = " + queueName + " bindingKey = " + severity);
         }
         System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
 

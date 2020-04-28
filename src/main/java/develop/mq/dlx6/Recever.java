@@ -1,3 +1,5 @@
+package develop.mq.dlx6;
+
 import java.util.HashMap;
 import java.util.Map;
 

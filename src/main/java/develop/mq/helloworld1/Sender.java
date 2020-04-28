@@ -1,3 +1,5 @@
+package develop.mq.helloworld1;
+
 import java.nio.charset.StandardCharsets;
 
 import com.rabbitmq.client.Channel;

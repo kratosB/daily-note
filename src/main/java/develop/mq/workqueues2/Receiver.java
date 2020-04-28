@@ -1,3 +1,5 @@
+package develop.mq.workqueues2;
+
 import java.nio.charset.StandardCharsets;
 
 import com.rabbitmq.client.Channel;
