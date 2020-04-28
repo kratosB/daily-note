@@ -1,6 +1,11 @@
+package develop.java.concurrence.juc;
+
 import java.util.Random;
 import java.util.concurrent.*;
 
+/**
+ * @author admin
+ */
 public class CyclicBarrierExam {
 
     public static void main(String[] args) {
