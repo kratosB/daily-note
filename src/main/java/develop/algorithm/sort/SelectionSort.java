@@ -1,3 +1,5 @@
+package develop.algorithm.sort;
+
 class SelectionSort {
 
     public static void main(String[] args) {
