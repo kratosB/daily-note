@@ -424,44 +424,135 @@
 
 #### 11.4 AQS的主要方法源码解析
 
-1. 
-    1. 
-    2. 
-    3. 
-    4. 
-2. 
-    1. 
-    2. 
-    3. 
-    4. 
-3. 
-    1. 
-    2. 
-    3. 
-    4. 
-4. 
-    1. 
-    2. 
-    3. 
-    4. 
-5. 
-    1. 
-    2. 
-    3. 
-    4. 
-
+源码复杂，看了个大概，这里略过了。
+1. 获取资源。
+    1. 获取资源的入口是acquire(int arg)方法。arg是要获取的资源的个数，在独占模式下始终为1。
+        1. 获取资源的方法除了acquire外，还有以下三个：
+            1. acquireInterruptibly：申请可中断的资源（独占模式）
+            2. acquireShared：申请共享模式的资源
+            3. acquireSharedInterruptibly：申请可中断的资源（共享模式）
+    2. 首先调用tryAcquire(arg)尝试去获取资源。
+    3. 如果获取资源失败，就通过addWaiter(Node.EXCLUSIVE)方法把这个线程插入到等待队列中。
+        >在队列的尾部插入新的Node节点，通过CAS自旋的方式保证了操作的线程安全性。
+    4. 处于等待队列的结点是从头结点一个一个去获取资源的。在acquireQueued方法中。
+    5. 这里parkAndCheckInterrupt方法内部使用到了LockSupport.park(this)。实际上就是Unsafe里的park和unpark。
+2. 释放资源。
+    1. release方法。
+    2. 里面调用了unparkSuccessor方法。
 
 ## JDK工具篇
 
 ### 12. 线程池原理
 
-1. 
-    1. 
-    2. 
-    3. 
-    4. 
-2. 
-    1. 
+#### 12.1 为什么要使用线程池
+
+1. 创建/销毁线程需要消耗系统资源，线程池可以复用已创建的线程。
+2. 控制并发的数量。并发数量过多，可能会导致资源消耗过多，从而造成服务器崩溃。（主要原因）
+3. 可以对线程做统一管理。
+
+#### 12.2 线程池的原理
+
+1. Java中的线程池顶层接口是Executor接口，ThreadPoolExecutor是这个接口的实现类。
+2. ThreadPoolExecutor一共有四个构造方法，必要的参数有5个，非必要的2个。
+    1. （必要）int corePoolSize：该线程池中核心线程数最大值。
+    2. （必要）int maximumPoolSize：该线程池中线程总数最大值。
+        1. maximumPoolSize = corePoolSize + 临时线程（任务少了会销毁）size。
+    3. （必要）long keepAliveTime：非核心（临时）线程闲置超时时长。
+    4. （必要）TimeUnit unit：keepAliveTime的单位。
+    5. （必要）BlockingQueue workQueue：阻塞队列，维护着等待执行的Runnable任务对象。
+        1. LinkedBlockingQueue：链式阻塞队列，底层数据结构是链表，默认大小是Integer.MAX_VALUE，也可以指定大小。
+        2. ArrayBlockingQueue：数组阻塞队列，底层数据结构是数组，需要指定队列的大小。
+        3. SynchronousQueue：同步队列，内部容量为0，每个put操作必须等待一个take操作，反之亦然。
+        4. DelayQueue：延迟队列，该队列中的元素只有当其指定的延迟时间到了，才能够从队列中获取到该元素 。
+    6. （非必要）ThreadFactory threadFactory：创建线程的工厂 ，用于批量创建线程，统一在创建线程时设置一些参数，如是否守护线程、线程的优先级等。如果不指定，会新建一个默认的线程工厂。
+    7. （非必要）RejectedExecutionHandler handler：拒绝处理策略，线程数量大于最大线程数就会采用拒绝处理策略。
+        1. ThreadPoolExecutor.AbortPolicy：默认拒绝处理策略，丢弃任务并抛出RejectedExecutionException异常。
+        2. ThreadPoolExecutor.DiscardPolicy：丢弃新来的任务，但是不抛出异常。
+        3. ThreadPoolExecutor.DiscardOldestPolicy：丢弃队列头部（最旧的）的任务，然后重新尝试执行程序（如果再次失败，重复此过程）。
+        4. ThreadPoolExecutor.CallerRunsPolicy：由调用线程处理该任务。
+3. 线程池主要的任务处理流程。
+    1. 线程总数量 < corePoolSize，无论线程是否空闲，都会新建一个核心线程执行任务（让核心线程数量快速达到corePoolSize，在核心线程数量 < corePoolSize时）。注意，这一步需要获得全局锁。
+    2. 线程总数量 >= corePoolSize时，新来的线程任务会进入任务队列中等待，然后空闲的核心线程会依次去缓存队列中取任务来执行（体现了线程复用）。
+    3. 当缓存队列满了，说明这个时候任务已经多到爆棚，需要一些“临时工”来执行这些任务了。于是会创建非核心线程去执行这个任务。注意，这一步需要获得全局锁。
+    4. 缓存队列满了， 且总线程数达到了maximumPoolSize，则会采取上面提到的拒绝策略进行处理。
+4. ThreadPoolExecutor如何做到线程复用的。
+    1. ThreadPoolExecutor在创建线程时，会将线程封装成工作线程worker，并放入工作线程组中，然后这个worker反复从阻塞队列中拿任务去执行。
+    2. addWorker()方法。
+        1. 先判断线程数量是否超出阈值，超过了就返回false。
+        2. 创建worker对象，并初始化一个Thread对象，然后启动这个线程对象。
+        3. Thread start之后，触发了worker的run方法。
+        4. worker的run方法，调用了runWorker方法。
+        5. runWorker方法线执行创建时的任务，然后循环去队列中获取任务，达到复用线程。
+        6. 如果队列中没有任务，核心线程会卡在workQueue.take方法，阻塞。非核心线程超时之后会被回收。
+
+#### 12.3 四种常见的线程池
+
+1. newCachedThreadPool。
+    1. 只会创建非核心线程。
+    2. 当需要执行很多短时间的任务时，CacheThreadPool的线程复用率比较高，会显著的提高性能。
+    3. 线程60s后会回收，意味着即使没有任务进来，CacheThreadPool并不会占用很多资源。
+2. newFixedThreadPool。
+    1. 只会创建核心线程。
+    2. 如果队列里没有任务可取，线程会一直阻塞在LinkedBlockingQueue.take()，线程不会被回收。没有任务的情况下，FixedThreadPool占用资源更多。
+3. newSingleThreadExecutor。
+    1. 单线程复用。
+4. newScheduledThreadPool。
+    1. 延迟队列。
+5. 阿里规范推荐不用这几种方法，因为corePoolSize无限大或者队列容量无限大，容易溢出。
+
+### 13. 阻塞队列
+
+#### 13.1 阻塞队列的由来
+
+1. 自己开发生产者-消费者模式，需要处理很多锁，并发，阻塞，唤醒。BlockingQueue提供了线程安全的队列访问方式。
+
+#### 13.2 BlockingQueue的操作方法
+
+|方法/处理方式|抛出异常|返回特殊值|阻塞|超时退出|
+|---|---|---|---|---|
+|插入方法|add(e)|offer(e)|put(e)|offer(e,time,unit)|
+|移除方法	|remove()|poll()|take()|poll(time,unit)|
+|检查方法	|element()|peek()|
+
+1. 不能往阻塞队列中插入null,会抛出空指针异常。
+2. 可以访问阻塞队列中的任意元素，调用remove(o)可以将队列之中的特定对象移除，但并不高效，尽量避免使用。
+
+#### 13.3 BlockingQueue的实现类
+
+1. ArrayBlockingQueue。
+    1. 由数组结构组成的有界阻塞队列。内部结构是数组，故具有数组的特性。
+    2. 可以初始化队列大小，且一旦初始化不能改变。构造方法中的fair表示控制对象的内部锁是否采用公平锁，默认是非公平锁。
+2. LinkedBlockingQueue。
+    1. 由链表结构组成的有界阻塞队列。内部结构是链表，具有链表的特性。
+    2. 默认队列的大小是Integer.MAX_VALUE，也可以指定大小。此队列按照先进先出的原则对元素进行排序。
+3. DelayQueue。
+    1. 该队列中的元素只有当其指定的延迟时间到了，才能够从队列中获取到该元素。
+    2. 注入其中的元素必须实现java.util.concurrent.Delayed接口。
+    3. DelayQueue是一个没有大小限制的队列，因此往队列中插入数据的操作（生产者）**永远不会被阻塞**，而只有获取数据的操作（消费者）才会被阻塞。
+4. PriorityBlockingQueue。
+    1. 基于优先级的无界阻塞队列（优先级的判断通过构造函数传入的Compator对象来决定），内部控制线程同步的锁采用的是公平锁。
+    2. 不会阻塞数据生产者（因为队列是无界的），而只会在没有可消费的数据时，阻塞数据的消费者。
+5. SynchronousQueue。
+    1. 这个队列比较特殊，没有任何内部容量，甚至连一个队列的容量都没有。并且每个 put 必须等待一个 take，反之亦然。
+    2. 即使是容量为1的ArrayBlockingQueue、LinkedBlockingQueue，跟这个还是有区别。
+    3. 特殊之处：
+        1. iterator() 永远返回空，因为里面没有东西。
+        2. peek() 永远返回null。
+        3. put() 往queue放进去一个element以后就一直wait直到有其他thread进来把这个element取走。
+        4. offer() 往queue里放一个element后立即返回，如果碰巧这个element被另一个thread取走了，offer方法返回true，认为offer成功；否则返回false。
+        5. take() 取出并且remove掉queue里的element，取不到东西他会一直等。
+        6. poll() 取出并且remove掉queue里的element，只有到碰巧另外一个线程正在往queue里offer数据或者put数据的时候，该方法才会取到东西。否则立即返回null。
+        7. isEmpty() 永远返回true。
+        8. remove()&removeAll() 永远返回false。
+>对于所有无界的阻塞队列，使用的时候要特别注意，生产者生产数据的速度绝对不能快于消费者消费数据的速度，否则时间一长，会最终耗尽所有的可用堆内存空间。
+
+#### 13.4 阻塞队列的原理
+
+1. 首先是构造器。除了初始化队列的大小和是否是公平锁之外，还对同一个锁（lock）初始化了两个条件（condition）。
+    1. notFull
+    2. notEmpty
+2. put操作的流程。
+    1. 所有执行put操作的线程竞争lock锁，拿到了lock锁的线程进入下一步，没有拿到lock锁的线程自旋竞争锁。
     2. 
     3. 
     4. 
@@ -481,9 +572,9 @@
     3. 
     4. 
 
-### 13. 阻塞队列
+#### 13.5 示例和使用场景
 
-1. 
+1. BlockingQueue提供了线程安全的队列访问方式，一般用于生产者-消费者模式。
     1. 
     2. 
     3. 
@@ -510,39 +601,201 @@
     4. 
 
 ### 14. 锁接口和类
+
+1. 
+    1. 
+    2. 
+    3. 
+    4. 
+2. 
+    1. 
+    2. 
+    3. 
+    4. 
+3. 
+    1. 
+    2. 
+    3. 
+    4. 
+4. 
+    1. 
+    2. 
+    3. 
+    4. 
+5. 
+    1. 
+    2. 
+    3. 
+    4. 
+
 ### 15. 并发容器集合
+
+1. 
+    1. 
+    2. 
+    3. 
+    4. 
+2. 
+    1. 
+    2. 
+    3. 
+    4. 
+3. 
+    1. 
+    2. 
+    3. 
+    4. 
+4. 
+    1. 
+    2. 
+    3. 
+    4. 
+5. 
+    1. 
+    2. 
+    3. 
+    4. 
+
 ### 16. CopyOnWrite容器
+
+1. 
+    1. 
+    2. 
+    3. 
+    4. 
+2. 
+    1. 
+    2. 
+    3. 
+    4. 
+3. 
+    1. 
+    2. 
+    3. 
+    4. 
+4. 
+    1. 
+    2. 
+    3. 
+    4. 
+5. 
+    1. 
+    2. 
+    3. 
+    4. 
+
 ### 17. 通信工具类
+
+1. 
+    1. 
+    2. 
+    3. 
+    4. 
+2. 
+    1. 
+    2. 
+    3. 
+    4. 
+3. 
+    1. 
+    2. 
+    3. 
+    4. 
+4. 
+    1. 
+    2. 
+    3. 
+    4. 
+5. 
+    1. 
+    2. 
+    3. 
+    4. 
+
 ### 18. Fork/Join框架
+
+1. 
+    1. 
+    2. 
+    3. 
+    4. 
+2. 
+    1. 
+    2. 
+    3. 
+    4. 
+3. 
+    1. 
+    2. 
+    3. 
+    4. 
+4. 
+    1. 
+    2. 
+    3. 
+    4. 
+5. 
+    1. 
+    2. 
+    3. 
+    4. 
+
 ### 19. Java 8 Stream并行计算原理
+
+1. 
+    1. 
+    2. 
+    3. 
+    4. 
+2. 
+    1. 
+    2. 
+    3. 
+    4. 
+3. 
+    1. 
+    2. 
+    3. 
+    4. 
+4. 
+    1. 
+    2. 
+    3. 
+    4. 
+5. 
+    1. 
+    2. 
+    3. 
+    4. 
+
 ### 20. 计划任务
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+1. 
+    1. 
+    2. 
+    3. 
+    4. 
+2. 
+    1. 
+    2. 
+    3. 
+    4. 
+3. 
+    1. 
+    2. 
+    3. 
+    4. 
+4. 
+    1. 
+    2. 
+    3. 
+    4. 
+5. 
+    1. 
+    2. 
+    3. 
+    4. 
 
 # 参考资料
 
