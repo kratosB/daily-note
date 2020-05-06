@@ -753,33 +753,22 @@
 
 #### 17.5 Phaser
 
-1. 
-    1. 
-    2. 
-    3. 
-    4. 
-2. 
-    1. 
-    2. 
-    3. 
-    4. 
-3. 
-    1. 
-    2. 
-    3. 
-    4. 
-4. 
-    1. 
-    2. 
-    3. 
-    4. 
-5. 
-    1. 
-    2. 
-    3. 
-    4. 
+1. Phaser跟CyclicBarrier基本差不多，就是在前者的基础上，增加了修改“任务总量”`parties`的方法。
+    1. CyclicBarrier初始化之后不能修改`parties`。
+    2. Phaser初始化之后可以修改`parties`。
+    3. `register`：注册一个party，每一阶段必须所有注册的party都到达才能进入下一阶段。
+    4. `deRegister`：减少一个party。
+2. Phaser终止的两种途径，Phaser维护的线程执行完毕或者onAdvance()返回true。
+3. `arriveAndDeregister()`指令减少一个party在下一轮生效，本轮仍照旧。
+4. 另外Phaser类用来控制某个阶段的线程数量很有用，但它并在意这个阶段具体有哪些线程arrive，只要达到它当前阶段的parties值，就触发屏障。
+5. Phaser类的原理相比起来要复杂得多。它内部使用了两个基于Fork-Join框架的原子类辅助。
 
 ### 18. Fork/Join框架
+
+#### 18.1 什么是Fork/Join
+#### 18.2 工作窃取算法
+#### 18.3 Fork/Join的具体实现
+#### 18.4 Fork/Join的使用
 
 1. 
     1. 

@@ -63,5 +63,6 @@ public class PhaserDemo {
         gamePoolExecutor.submit(new PreTaskThread("加载人物模型", phaser));
         gamePoolExecutor.submit(new PreTaskThread("加载背景音乐", phaser));
         gamePoolExecutor.submit(new PreTaskThread("加载新手教程", phaser));
+        gamePoolExecutor.shutdown();
     }
 }
