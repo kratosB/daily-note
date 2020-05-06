@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author admin
  */
-public class SemaphoreExam {
+public class SemaphoreDemo {
 
     public static void main(String[] args) {
         Semaphore semaphore = new Semaphore(3);

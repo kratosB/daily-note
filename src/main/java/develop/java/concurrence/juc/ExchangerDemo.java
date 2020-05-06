@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author admin
  */
-public class ExchangerExam {
+public class ExchangerDemo {
 
     public static void main(String[] args) {
         Exchanger<String> exchanger = new Exchanger<>();

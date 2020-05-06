@@ -6,7 +6,7 @@ import java.util.concurrent.*;
 /**
  * @author admin
  */
-public class CyclicBarrierExam {
+public class CyclicBarrierDemo {
 
     public static void main(String[] args) {
         CyclicBarrier barrier = new CyclicBarrier(3,
