@@ -1,4 +1,4 @@
-package develop.java.concurrence.juc;
+package develop.java.concurrence.juc.tool;
 
 import java.util.Random;
 import java.util.concurrent.ExecutorService;

@@ -46,7 +46,7 @@
 1. 操作系统线程主要有以下三个状态。
     1. 就绪状态(ready)：线程正在等待使用CPU，经调度程序调用之后可进入running状态。
     2. 执行状态(running)：线程正在使用CPU。
-    3. 等待状态(waiting): 线程经过等待事件的调用或者正在等待其他资源（如I/O）。
+    3. 等待状态(waiting)：线程经过等待事件的调用或者正在等待其他资源（如I/O）。
 
 #### 4.2 Java线程的6个状态
 
@@ -766,63 +766,62 @@
 ### 18. Fork/Join框架
 
 #### 18.1 什么是Fork/Join
+
+1. Fork/Join就是拆分任务，然后聚合结果。
+    1. fork，拆分任务。
+    2. join，聚合结果。
+    3. Fork/Join框架会将任务分配给线程池中的线程。Fork/Join框架在执行任务时使用了工作窃取算法，哪个线程先完成，就去其他（没完成的）线程偷任务。
+
 #### 18.2 工作窃取算法
+
+1. 多线程执行不同任务队列的过程中，某个线程执行完自己队列的任务后从其他线程的任务队列里窃取任务来执行。
+2. 当一个线程窃取另一个线程的时候，为了减少两个任务线程之间的竞争，我们通常使用双端队列来存储任务。被窃取的任务线程都从双端队列的头部拿任务执行，而窃取其他任务的线程从双端队列的尾部执行任务。
+3. 当一个线程在窃取任务时要是没有其他可用的任务了，这个线程会进入阻塞状态以等待再次“工作”。
+
 #### 18.3 Fork/Join的具体实现
+
+1. Fork/Join框架中，任务的载体是ForkJoinTask。
+    1. 一般用RecursiveAction和RecursiveTask，两个都是ForkJoinTask的子类。RecursiveAction无返回值，RecursiveTask有返回值。
+    2. fork()方法：把任务推入当前工作线程的工作队列里。
+    3. join()方法：等待处理任务的线程处理完毕，获得返回值。
+2. ForkJoinPool是用于执行ForkJoinTask任务的执行（线程）池。
+    1. WorkQueue：
+        1. 内部有一个WorkQueue[]数组，数组里的每一个元素，都是一个双端队列。工作线程在处理自己的工作队列时，会从队列首取任务来执行（FIFO）；如果是窃取其他队列的任务时，窃取的任务位于所属任务队列的队尾（LIFO）。
+        2. ForkJoinPool与传统线程池最显著的区别就是它维护了一个工作队列数组。传统线程池一般只有一个阻塞队列。
+    2. runState：
+        1. ForkJoinPool的运行状态。SHUTDOWN状态用负数表示，其他用2的幂次表示。
+
 #### 18.4 Fork/Join的使用
 
-1. 
-    1. 
-    2. 
-    3. 
-    4. 
-2. 
-    1. 
-    2. 
-    3. 
-    4. 
-3. 
-    1. 
-    2. 
-    3. 
-    4. 
-4. 
-    1. 
-    2. 
-    3. 
-    4. 
-5. 
-    1. 
-    2. 
-    3. 
-    4. 
+有演示代码。
 
 ### 19. Java 8 Stream并行计算原理
 
-1. 
-    1. 
-    2. 
-    3. 
-    4. 
-2. 
-    1. 
-    2. 
-    3. 
-    4. 
-3. 
-    1. 
-    2. 
-    3. 
-    4. 
-4. 
-    1. 
-    2. 
-    3. 
-    4. 
-5. 
-    1. 
-    2. 
-    3. 
-    4. 
+#### 19.1 Java 8 Stream简介
+
+无用信息，略。
+
+#### 19.2 Stream单线程串行计算
+
+就是普通的stream，略。
+
+
+#### 19.3 Stream多线程并行计算
+
+Stream中的parallel方法，其实就跟parallelStream一样，略。
+
+#### 19.4 从源码看Stream并行计算原理
+
+1. parallelStream底层实际上就是fork/join。
+    1. parallel方法会设置`sourceStage.parallel = true`。
+    2. 之后reduce方法会先判断`isParallel()`，然后用并行/非并行模式运算。
+    3. reduce方法 -> terminalOp.evaluateParallel -> ReduceOp.evaluateParallel - > ReduceTask ->  AbstractTask -> CountedCompleter -> ForkJoinTask。
+    4. 这里的ReduceTask的invoke方法，其实是调用的ForkJoinTask的invoke方法，中间三层继承并没有覆盖这个方法的实现。
+
+#### 19.5 Stream并行计算的性能提升
+
+1. 线程的创建、销毁以及维护线程上下文的切换等等都有一定的开销。
+2. 如果你的服务器并不是多核服务器，那也没必要用Stream的并行计算。因为在单核的情况下，往往Stream的串行计算比并行计算更快，因为它不需要线程切换的开销。
 
 ### 20. 计划任务
 
