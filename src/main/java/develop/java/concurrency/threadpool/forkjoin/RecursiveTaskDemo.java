@@ -1,4 +1,4 @@
-package develop.java.concurrence.juc.threadpool.forkjoin;
+package develop.java.concurrency.threadpool.forkjoin;
 
 import java.util.Random;
 import java.util.concurrent.ForkJoinPool;

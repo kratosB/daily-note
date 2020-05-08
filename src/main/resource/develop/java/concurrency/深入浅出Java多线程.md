@@ -793,7 +793,7 @@
 
 #### 18.4 Fork/Join的使用
 
-有演示代码。
+有演示代码（FibonacciDemo）。
 
 ### 19. Java 8 Stream并行计算原理
 
@@ -804,7 +804,6 @@
 #### 19.2 Stream单线程串行计算
 
 就是普通的stream，略。
-
 
 #### 19.3 Stream多线程并行计算
 
@@ -825,32 +824,30 @@ Stream中的parallel方法，其实就跟parallelStream一样，略。
 
 ### 20. 计划任务
 
+1. Timer的缺点：
+    1. Timer是单线程模式。
+    2. 如果某个TimerTask耗时较久，那么就会影响其它任务的调度。
+    3. Timer的任务调度是基于绝对时间的，对系统时间敏感。
+    4. Timer不会捕获执行TimerTask时所抛出的异常。一旦出现异常，则线程就会终止，其他任务也得不到执行。
 
-1. 
-    1. 
-    2. 
-    3. 
-    4. 
-2. 
-    1. 
-    2. 
-    3. 
-    4. 
-3. 
-    1. 
-    2. 
-    3. 
-    4. 
-4. 
-    1. 
-    2. 
-    3. 
-    4. 
-5. 
-    1. 
-    2. 
-    3. 
-    4. 
+#### 20.1 使用案例
+
+有演示代码（ScheduledThreadPoolDemo）。
+
+#### 20.2 类结构
+
+1. ScheduledThreadPoolExecutor继承了ThreadPoolExecutor，实现了ScheduledExecutorService。
+2. ScheduledExecutorService实现了ExecutorService ,并增加若干定时相关的接口。
+    1. scheduleAtFixedRate：特点是，period是从任务**开始执行**算起的。
+    2. scheduleWithFixDelay：特点是，period是从任务**执行完成后**算起的。
+
+#### 20.3 主要方法介绍
+
+较复杂，略。
+
+#### 20.4 DelayedWorkQueue
+
+较复杂，略。
 
 # 参考资料
 

@@ -1,4 +1,4 @@
-package develop.java.concurrence.juc.tool;
+package develop.java.concurrency.tool;
 
 import java.util.Random;
 import java.util.concurrent.Exchanger;
