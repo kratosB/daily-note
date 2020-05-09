@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author zhiqiang bao
  */
-public class ScheduledThreadPoolExecutorDemo {
+public class ScheduledExecutorServiceDemo1 {
 
     public static void main(String[] args) {
         ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1, Executors.defaultThreadFactory());

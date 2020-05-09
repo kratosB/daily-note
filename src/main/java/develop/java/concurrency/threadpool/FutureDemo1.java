@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author zhiqiang bao
  */
-public class FutureDemo {
+public class FutureDemo1 {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         ExecutorService service = Executors.newCachedThreadPool();
