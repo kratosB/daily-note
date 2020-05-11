@@ -43,6 +43,7 @@ public class FibonacciDemo2 {
         System.out.println("CPU核数：" + Runtime.getRuntime().availableProcessors());
         long start = System.currentTimeMillis();
         Fibonacci fibonacci = new Fibonacci(10);
+        // 这个地方用invoke是为了阻塞，等待最终的m。如果直接用submit，就会在没算完的时候把m输出。
         forkJoinPool.invoke(fibonacci);
         System.out.println(fibonacci.m);
         long end = System.currentTimeMillis();

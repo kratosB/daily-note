@@ -57,7 +57,8 @@ public class RecursiveTaskDemo {
         }
         ForkJoinPool pool = new ForkJoinPool();
         TaskFindMax task = new TaskFindMax(0, array.length - 1, array);
-        pool.invoke(task);
-        System.out.println("MaxValue = " + task.join());
+        Double invoke = pool.invoke(task);
+        // 这个invoke就是invoke方法里面task join出来的结果
+        System.out.println("MaxValue = " + invoke);
     }
 }
