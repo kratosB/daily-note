@@ -63,8 +63,13 @@
 ---
 引用4主要讲了redo log和undo log的结构，没怎么仔细看，但是貌似挺详细的。
 
+1. 区别1：
+    1. redo log记录物理日志。
+    2. undo log记录逻辑日志。
+
 ## 参考资料
 >1. [binlog，redo log，undo log区别](https://blog.csdn.net/mydriverc2/article/details/50629599)
 >2. [一条SQL语句在MySQL中如何执行的](https://mp.weixin.qq.com/s?__biz=Mzg2OTA0Njk0OA==&mid=2247485097&idx=1&sn=84c89da477b1338bdf3e9fcd65514ac1&chksm=cea24962f9d5c074d8d3ff1ab04ee8f0d6486e3d015cfd783503685986485c11738ccb542ba7&token=79317275&lang=zh_CN#rd)
 >3. 《MySQL实战45讲-02 | 日志系统：一条SQL更新语句是如何执行的？》
 >4. [详细分析MySQL事务日志(redo log和undo log)](https://www.cnblogs.com/f-ck-need-u/archive/2018/05/08/9010872.html#auto_id_11)
+>5. [详细分析MySQL事务日志(redo log和undo log)，转载了4，在4的基础上多了点东西](https://www.cnblogs.com/DataArt/p/10209573.html)

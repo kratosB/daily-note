@@ -28,6 +28,31 @@ ORDER BY create_time limit 10;
 ```
 在新设计下查询时间基本固定，不会随着数据量的增长而发生变化。
 
+---
+
+在[一次SQL查询优化原理分析（900W+数据，从17s到300ms）](https://mp.weixin.qq.com/s/CobdICM1vOUumLS2POVhSA)这个贴子中，看到了另一种优化方式。
+
+在不考虑`order by`的情况下，可以把语句改成如下形式：
+```
+SELECT * 
+FROM   operation tablea
+LEFT JOIN
+(
+SELECT id 
+FROM   operation 
+WHERE  type = 'SQLStats' 
+       AND name = 'SlowLog' 
+LIMIT  1000, 10
+)
+tableb
+ON tablea.id = tableb.id;
+```
+原理应该是减少回表。原语句应该是要回表1000次，新语句应该只需要回表10次，所以速度快了许多。当然，前提是，所有查询条件都要有覆盖索引。
+
+然后，我们再来看一下考虑`order by`的情况。
+
+参考《Mysql实战45讲，第16章，“order by”是怎么工作的》中的说法，使用覆盖索引，可以让order by的回表次数减少。那么，理论上说，把`type`,`name`,`create_time`做成一个联合索引（索引本来就自带id），应该就可以不用回表1000次了。
+
 ## 2. 隐式转换
 
 SQL语句中查询变量和字段定义类型不匹配是另一个常见的错误。比如下面的语句：
@@ -205,4 +230,5 @@ WHERE  n.topic_status < 4
 
 
 ## 参考链接
->[这8种常见的SQL错误用法，80%的人还在使用](https://mp.weixin.qq.com/s/RDaCUV_EvJqbuRnE4UeAYA)
+>1. [这8种常见的SQL错误用法，80%的人还在使用](https://mp.weixin.qq.com/s/RDaCUV_EvJqbuRnE4UeAYA)
+>2. [一次SQL查询优化原理分析（900W+数据，从17s到300ms）](https://mp.weixin.qq.com/s/CobdICM1vOUumLS2POVhSA)
