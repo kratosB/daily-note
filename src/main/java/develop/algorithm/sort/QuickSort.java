@@ -3,7 +3,7 @@ package develop.algorithm.sort;
 class QuickSort {
 
     public static void main(String[] args) {
-        int[] a = new int[]{
+        int[] a = new int[] {
                 5, 1, 6, 9, 3, 2, 6, 8, 3, 5
         };
         QuickSort quickSort = new QuickSort();
