@@ -9,7 +9,6 @@
 1. [面试不再慌！跟着老司机吃透Spring Cloud](https://mp.weixin.qq.com/s/wG4CTLORnvemkjUsZ7YP6Q)
 1. [构建微服务：Spring boot 入门篇](https://www.cnblogs.com/ityouknow/p/5662753.html)
 1. [目录：SpringBoot 1.x | 2.x 基础篇、核心篇、实战篇](https://www.jianshu.com/p/9a08417e4e84)
-1. [Spring Boot浅谈(是什么/能干什么/优点和不足)](https://blog.csdn.net/fly_zhyu/article/details/76407830)
 1. []()
 1. []()
 1. []()
