@@ -23,12 +23,14 @@
 1. [面试官问：平常你是怎么对Java服务进行调优的？](https://mp.weixin.qq.com/s/8KjXr38Loz2qVVOAZrvlhA)
 1. [太南：一个JDK线程池BUG引发的GC机制思考](https://mp.weixin.qq.com/s/xpC5NzWDMvAKds5dOem8zg)
 1. [JAVA 线上故障排查完整套路！牛掰！](https://mp.weixin.qq.com/s/dujS-nP7qgRGnpUBesIB-w)
+1. [见了鬼，我JVM的Survivor区怎么只有20M了？](https://mp.weixin.qq.com/s/huq-2OYhxuQfwnrogaPnpw)
 
 ## 垃圾回收
 
 1. [咱们从头到尾说一次 Java 垃圾回收](https://mp.weixin.qq.com/s/5hfjYBhjbpKTwvRi6zogKA)
 1. [JVM面试问题系列：判断对象是否已死和四种垃圾回收算法总结](https://mp.weixin.qq.com/s/H__cChHHyvGInQBnehmIxw)
 1. [一个JDK线程池BUG引发的GC机制思考](https://mp.weixin.qq.com/s/iYnNZPTszpA_ShgJCZ6Mxw)
+1. [面试官：给我说说你对Java GC机制的理解？](https://mp.weixin.qq.com/s/ZdIbcVhZSKlFSZ7cDYHTrA)
 
 ## hash
 

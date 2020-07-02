@@ -215,6 +215,8 @@
     2. redo log 主要节省的是随机写磁盘的IO消耗（转成顺序写）。
     3. change buffer主要节省的则是随机读磁盘的IO消耗。
 
+>在[线上MySQL慢查询现象案例--Impossible WHERE noticed after reading const tables](https://yq.aliyun.com/articles/393774)中看到一种说法，在用唯一索引的时候，如果where XXX=“”这个值在表中不存在，会走全扫描。但是用普通索引，就没有这种情况。从这个角度看，也是普通索引好。
+
 ## 10，MySQL为什么有时候会选错索引？
 
 不太感兴趣，而且感觉不是很实用，没怎么看
