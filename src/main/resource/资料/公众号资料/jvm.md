@@ -32,6 +32,12 @@
 1. [一个JDK线程池BUG引发的GC机制思考](https://mp.weixin.qq.com/s/iYnNZPTszpA_ShgJCZ6Mxw)
 1. [面试官：给我说说你对Java GC机制的理解？](https://mp.weixin.qq.com/s/ZdIbcVhZSKlFSZ7cDYHTrA)
 
+### G1
+
+1. [为什么G1 GC从JDK 9之后成为默认的垃圾回收器？](https://cloud.tencent.com/developer/article/1429131)
+1. [垃圾收集器G1详解](https://mp.weixin.qq.com/s/7qqrLuJiorSBz77hktmrBA)
+1. [详解 JVM Garbage First(G1) 垃圾收集器](https://blog.csdn.net/coderlius/article/details/79272773)
+
 ## hash
 
 1. [都说知道 HashMap 线程不安全，它为啥不安全？](https://mp.weixin.qq.com/s/K-BvEsMN1qTRhmvK5KJ3qQ)
