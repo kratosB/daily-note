@@ -1,5 +1,8 @@
 package develop.java.concurrency.alternateprint;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * Created on 2020/6/12. 用自
  * https://blog.csdn.net/xiaokang123456kao/article/details/77331878，可以用，但是会有死锁问题，下面2中的方式更好。
@@ -99,20 +102,22 @@ class AlternatePrint123UsingSynchronized2 {
         print("C", 2, objectC, objectA);
     }
 
-    public void print(String name, int targetState, Object curr, Object next) {
-        int times = 10;
-        for (int i = 0; i < times;) {
-            synchronized (curr) {
-                while (state % 3 != targetState) {
+    public void print(String name, int targetState, Object current, Object next) {
+        int count = 5;
+        for (int i = 0; i < count;) {
+            synchronized (current) {
+                int value = 3;
+                System.out.println(name + "++");
+                while (state % value != targetState) {
                     try {
-                        curr.wait();
+                        current.wait();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
                 i++;
                 state++;
-                System.out.print(name);
+                System.out.println(name);
                 synchronized (next) {
                     next.notify();
                 }
@@ -136,18 +141,21 @@ class AlternatePrint123UsingSynchronized3 {
     static int index = 1;
 
     public static void main(String[] args) {
+        int count = 5;
+        int value = 3;
         final Object lock = new Object();
         Runnable r1 = () -> {
             synchronized (lock) {
-                for (int i = 0; i < 10; i++) {
-                    while (index % 3 != 1) {
+                int remainder = 1;
+                for (int i = 0; i < count; i++) {
+                    while (index % value != remainder) {
                         try {
                             lock.wait();
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
-                    System.out.println("a");
+                    System.out.print("a");
                     index++;
                     lock.notifyAll();
                 }
@@ -155,15 +163,16 @@ class AlternatePrint123UsingSynchronized3 {
         };
         Runnable r2 = () -> {
             synchronized (lock) {
-                for (int i = 0; i < 10; i++) {
-                    while (index % 3 != 2) {
+                int remainder = 2;
+                for (int i = 0; i < count; i++) {
+                    while (index % value != remainder) {
                         try {
                             lock.wait();
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
-                    System.out.println("b");
+                    System.out.print("b");
                     index++;
                     lock.notifyAll();
                 }
@@ -171,22 +180,25 @@ class AlternatePrint123UsingSynchronized3 {
         };
         Runnable r3 = () -> {
             synchronized (lock) {
-                for (int i = 0; i < 10; i++) {
-                    while (index % 3 != 0) {
+                int remainder = 0;
+                for (int i = 0; i < count; i++) {
+                    while (index % value != remainder) {
                         try {
                             lock.wait();
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
-                    System.out.println("c");
+                    System.out.print("c");
                     index++;
                     lock.notifyAll();
                 }
             }
         };
-        new Thread(r1).start();
-        new Thread(r2).start();
-        new Thread(r3).start();
+        ExecutorService executorService = Executors.newFixedThreadPool(3);
+        executorService.execute(r1);
+        executorService.execute(r2);
+        executorService.execute(r3);
+        executorService.shutdown();
     }
 }
