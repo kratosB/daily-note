@@ -49,8 +49,8 @@
 #### 13.1.2.1 互斥同步（Mutual Exclusion & Synchronization）
 
 1. 互斥同步是最常见的一种**并发正确性保障手段**。
-    1. **同步**时指在多个线程并发访问共享数据时，保证共享数据在同一时刻只被一条线程使用。
-    2. **互斥**时实现同步的一种手段，临界区（Critical Section），互斥量（Mutex）和信号量（Semaphore）都是主要的互斥实现方式。
+    1. **同步**是指在多个线程并发访问共享数据时，保证共享数据在同一时刻只被一条线程使用。
+    2. **互斥**是实现同步的一种手段，临界区（Critical Section），互斥量（Mutex）和信号量（Semaphore）都是主要的互斥实现方式。
 2. 最基本的互斥同步手段就是**synchronized关键字**。
     1. synchronized关键字经过编译之后，会在同步块前后分别形成`monitorenter`和`monitorexit`这两个字节码指令。
     2. `monitorenter`和`monitorexit`这两个字节码都需要一个**reference类型的参数**，来指明锁定和解锁的对象。
