@@ -2,7 +2,8 @@
 (1)模板增删改查
 (2)重构老的通道发送部分（兼容多通道，配比），新增腾讯云通道）
 (3)邮件埋点
-(4)场景发送 newwwwwwwwwwwwwwwwww
+(4)场景发送 rabbitMQ
+(5)短链接
 可以介绍迁移的时候优化了数据库表
 
 2.抽奖
@@ -47,18 +48,19 @@ redis
     3. 这个帖子中，还有应对缓存穿透/击穿/雪崩的方案，感觉这个帖子里的东西，可以单独记录在redis目录下了。
 
 10. 微信公众号
+    1. oauth网页授权
+    2. 微信扫码绑定
+    3. 通知推送，微信菜单直接登录
 
 11. aws
 
-12. 短链接
+12. token
 
-13. token
-
-14. pdf转图片+图片识别+发票验真
-1. 转图片（内存优化）
-    1. https://www.cnblogs.com/firstdream/p/5536013.html
-    2. https://www.cnblogs.com/dyllove98/archive/2012/04/24/2468771.html
-    3. https://blog.csdn.net/win7system/article/details/53747032
+13. pdf转图片+图片识别+发票验真
+    1. 转图片（内存优化）
+        1. https://www.cnblogs.com/firstdream/p/5536013.html
+        2. https://www.cnblogs.com/dyllove98/archive/2012/04/24/2468771.html
+        3. https://blog.csdn.net/win7system/article/details/53747032
 
 
 
