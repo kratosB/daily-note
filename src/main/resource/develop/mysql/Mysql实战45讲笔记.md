@@ -66,7 +66,7 @@
     1. redo log。
         1. 如果每一次的更新操作都需要写进磁盘，然后磁盘也要找到对应的那条记录，然后再更新，整个过程IO成本、查找成本都很高。
         2. 有一条记录要更新时，InnoDB引擎就会先把记录写到redo log，并更新内存。在系统比较空闲的时候，再把更新同步到磁盘。
-            >这种先写日志，再写磁盘的过程，交做WAL（Write Ahead Logging）技术。
+            >这种先写日志，再写磁盘的过程，叫做WAL（Write Ahead Logging）技术。
         3. InnoDB的redo log的大小是有限的，如果写完了，MySQL就需要停下来，把一部分数据同步到磁盘，腾出新的空间，然后开始继续写。
         4. redo log还给InnoDB提供了crash-safe（数据库异常重启，已提交数据不会丢失）的能力。
         >总的思路是把随机写转化为顺序写（要更新的数据在磁盘的不同位置上，所以是随机写。redo log就是一行一行往下写，所以是顺序写）
@@ -725,7 +725,7 @@ insert into like;
         >事务执行中间过程的redo log也是直接写在redo log buffer中的，也会被后台线程一起持久化到磁盘。（一个没有提交的事务的redo log，也是可能已经持久化到磁盘的。）
     5. 即使没提交，redo log buffer写了`innodb_log_buffer_size`一半的时候，会触发write，但是不触发fsync，数据在page cache。
     6. 即使没提交，如果`innodb_flush_log_at_trx_commit=1`，事务B提交的时候，会把事务A写在buffer的内容顺便持久化到磁盘。
-    7. 如果`innodb_flush_log_at_trx_commit=1`，redo log在prepare的时候就会持久化。然后commit的时候就不需要fsync了，指挥write到page cache。
+    7. 如果`innodb_flush_log_at_trx_commit=1`，redo log在prepare的时候就会持久化。然后commit的时候就不需要fsync了，只会write到page cache。
         >我觉得应该是数据已经持久化了，标签是prepare，然后write到page cache里面的是把标签改成commit，不需要立即磁盘化，每秒一次的后台线程会持久化这个标签。个人理解。
 3. 组提交（group commit）
     1. 解决TPS过高的情况。（按照一次提交redo log和binlog都刷盘来看，一次提交2次刷盘，那么20000的TPS就要刷盘40000次，组提交可以大大减少）

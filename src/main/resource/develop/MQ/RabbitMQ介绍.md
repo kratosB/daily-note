@@ -26,15 +26,15 @@ RabbitMQ的具体特点可以概括为以下几点：
 
 Queue（队列）是RabbitMQ的内部对象，用于存储消息，用下图表示。
     
-![queue](https://cdn.www.sojson.com/file/doc/8071183810)
+![queue](https://cdn.yinshua86.com/file/doc/8071183810)
     
 RabbitMQ中的消息都只能存储在Queue中，生产者（下图中的P）生产消息并最终投递到Queue中，消费者（下图中的C）可以从Queue中获取消息并消费。
     
-![生产消费](https://cdn.www.sojson.com/file/doc/1972176598)
+![生产消费](https://cdn.yinshua86.com/file/doc/1972176598)
     
 多个消费者可以订阅同一个Queue，这时Queue中的消息会被平均分摊给多个消费者进行处理，而不是每个消费者都收到所有的消息并处理。 
     
-![多个消费者](https://cdn.www.sojson.com/file/doc/9323193930)
+![多个消费者](https://cdn.yinshua86.com/file/doc/9323193930)
 
 #### Message acknowledgment
 
@@ -56,13 +56,13 @@ RabbitMQ中的消息都只能存储在Queue中，生产者（下图中的P）生
 
 前面我们讲到如果有多个消费者同时订阅同一个Queue中的消息，Queue中的消息会被平摊给多个消费者。这时如果每个消息的处理时间不同，就有可能会导致某些消费者一直在忙，而另外一些消费者很快就处理完手头工作并一直空闲的情况。我们可以通过设置prefetchCount来限制Queue每次发送给每个消费者的消息数，比如我们设置prefetchCount=1，则Queue每次给每个消费者发送一条消息；消费者处理完这条消息后Queue会再给该消费者发送一条消息。
     
-![prefetchCount](https://cdn.www.sojson.com/file/doc/3116432964)
+![prefetchCount](https://cdn.yinshua86.com/file/doc/3116432964)
 
 #### Exchange
 
 在上一节我们看到生产者将消息投递到Queue中，实际上这在RabbitMQ中这种事情永远都不会发生。实际的情况是，生产者将消息发送到Exchange（交换器，下图中的X），由Exchange将消息路由到一个或多个Queue中（或者丢弃）。
 
-![exchange](https://cdn.www.sojson.com/file/doc/4961981484)
+![exchange](https://cdn.yinshua86.com/file/doc/4961981484)
 
 #### Routing key
 
@@ -82,7 +82,7 @@ RabbitMQ常用的Exchange Type有fanout、direct、topic、headers这四种（AM
 
 fanout类型的Exchange路由规则非常简单，它会把所有发送到该Exchange的消息路由到**所有**与它绑定的Queue中。
 
-![fanout](https://cdn.www.sojson.com/file/doc/8914084922)
+![fanout](https://cdn.yinshua86.com/file/doc/8914084922)
 
 上图中，生产者（P）发送到Exchange（X）的所有消息都会路由到图中的两个Queue，并最终被两个消费者（C1与C2）消费。
 
@@ -90,7 +90,7 @@ fanout类型的Exchange路由规则非常简单，它会把所有发送到该Exc
 
 direct类型的Exchange路由规则也很简单，它会把消息路由到那些binding key与routing key**完全匹配**的Queue中。
 
-![direct](https://cdn.www.sojson.com/file/doc/5932090818)
+![direct](https://cdn.yinshua86.com/file/doc/5932090818)
 
 以上图的配置为例，
 1. 我们以routingKey=”error”发送消息到Exchange，则消息会路由到Queue1（amqp.gen-S9b…，这是由RabbitMQ自动生成的Queue名称）和Queue2（amqp.gen-Agl…）。
@@ -104,7 +104,7 @@ topic类型的Exchange在匹配规则上进行了扩展，它与direct类型的E
 2. binding key与routing key一样也是句点号“.”分隔的字符串。
 3. binding key中可以存在两种特殊字符“*”与“#”，用于做模糊匹配，其中“*”用于匹配一个单词，“#”用于匹配多个单词（可以是零个）。
 
-![topic](https://cdn.www.sojson.com/file/doc/7685815932)
+![topic](https://cdn.yinshua86.com/file/doc/7685815932)
 
 以上图中的配置为例，
 1. routingKey=”quick.orange.rabbit”的消息会同时路由到Q1与Q2。
@@ -123,7 +123,7 @@ headers类型的Exchange不依赖于routing key与binding key的匹配规则来�
 
 MQ本身是基于异步的消息处理，前面的示例中所有的生产者（P）将消息发送到RabbitMQ后不会知道消费者（C）处理成功或者失败（甚至连有没有消费者来处理这条消息都不知道）。但实际的应用场景中，我们很可能需要一些同步处理，需要同步等待服务端将我的消息处理完成后再进行下一步处理。这相当于RPC（Remote Procedure Call，远程过程调用）。在RabbitMQ中也支持RPC。
 
-![RPC](https://cdn.www.sojson.com/file/doc/6121174952)
+![RPC](https://cdn.yinshua86.com/file/doc/6121174952)
 
 RabbitMQ中实现RPC的机制是：
 1. 客户端发送请求（消息）时，在消息的属性（MessageProperties，在AMQP协议中定义了14中properties，这些属性会随着消息一起发送）中设置两个值replyTo（一个Queue名称，用于告诉服务器处理完成后将通知我的消息发送到这个Queue中）和correlationId（此次请求的标识号，服务器处理完成后需要将此属性返还，客户端将根据这个id了解哪条请求被成功执行了或执行失败）
