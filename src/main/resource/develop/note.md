@@ -75,6 +75,8 @@ redis
 3. 主动式缓存/被动式缓存
     1. 帖子里看到的，可以联系到2里面去，主动式是事先查，类似我上面2中提到的job，被动式就是查到更新缓存。参考帖子https://mp.weixin.qq.com/s/aQLX5w9EpgeDvJrhIlOFxw
     2. 这个帖子里还提到了缓存数据一致性的问题，提了两种方案。但是没说到我想的“更新之前先删除缓存”的方案，不太理解，可以研究一下。
+    >今天突然想到了“更新之前先删除缓存”的坏处，在类似秒杀的场景下，如果用缓存做库存，每次秒杀卖出去1件都要更新db，然后删除缓存，那么缓存不就形同虚设了吗？
+    >这种操作更适合读多写少的场景。
     3. 这个帖子中，还有应对缓存穿透/击穿/雪崩的方案，感觉这个帖子里的东西，可以单独记录在redis目录下了。
 
 
@@ -92,12 +94,14 @@ redis
 4. 乐观锁，悲观锁，代码实现。
 5. 举例子，A查数据库，把age=13改成了14，B查数据库，把age=13改成15。然后A发现age=15岁，技术上该怎么优化呢。
 6. 索引是不是越多越好。
+    >索引太多，表加锁就很复杂，容易死锁（或降低并发效率）
 7. spring事物。
 8. transaction怎么保证多个事务一次性提交。
 9. 事物内部怎么实现。
 10. A服务调用B服务的时候超时了（比方说是转账），作为调用方，你不知道是成功还是失败，怎么处理呢。
 （比方说路由用了很久，就算你超时之后先查再处理，可能也会在处理之前）。
 （不管哪个服务调用，都有可能会有这种情况，不可能每个调用都用rabbitMQ吧）。
+    >[微服务调用超时处理](https://www.jianshu.com/p/d68d572b0613)
 11. 你的job发消息，假设有100w数据要处理，每秒就10个。那么，如果你的job在跑，运维把你的机器重启了。
 你的job就中断了，你有什么措施可以优化这个方案呢。（我说了redis，他说为什么不用数据库）。
 12. http路由分发怎么做（调用网关的地方用什么方式，比方配置或者参数什么的）。
@@ -149,6 +153,8 @@ redis
 2. String,StringBuilder,StringBuffer
 2. 数据库锁和事物的区别，事物什么时候会失败
 3. 业务幂等(这个问题无语了，非业务幂等其实就是让前端传一个参数，醉了)
+    >[面试阿里被问：“你的项目是如何处理重复请求/并发请求的？”](https://mp.weixin.qq.com/s?__biz=MzAxMjEwMzQ5MA==&mid=2448895276&idx=2&sn=5481eee82913a5023765f3dd5f461cc7&chksm=8fb57701b8c2fe178852e717ba4308d2c79639d887c4f47586b033b7fd0b07a6e624a587bb67&xtrack=1&scene=90&subscene=93&sessionid=1605693431&clicktime=1605693485&enterid=1605693485&ascene=56&devicetype=android-29&version=270014ab&nettype=WIFI&abtest_cookie=AAACAA%3D%3D&lang=zh_CN&exportkey=Aq1ie%2BtDiQGkzSSNZCr%2BB8U%3D&pass_ticket=2It%2BeAOsIM3ngwvmKr4qsgTBkp6N4IRLSySk7JEw2ilEDQMsymAhtaEkZaWHeqxr&wx_header=1)
+    >主要还是需要一个唯一标识，1-全局唯一标识，2-利用userId，请求参数等，造一个唯一标识
 
 
 

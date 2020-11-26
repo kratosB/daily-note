@@ -5,7 +5,8 @@ import java.util.concurrent.Executors;
 
 /**
  * Created on 2020/6/12. 用自
- * https://blog.csdn.net/xiaokang123456kao/article/details/77331878，可以用，但是会有死锁问题，下面2中的方式更好。
+ * https://blog.csdn.net/xiaokang123456kao/article/details/77331878，
+ * 可以用，但是会有死锁问题，下面2中的方式更好。
  * 
  * @author zhiqiang bao
  */
@@ -71,7 +72,8 @@ class AlternatePrint123UsingSynchronized1 {
 
 /**
  * 引用自
- * https://blog.csdn.net/weixin_42061805/article/details/92251917，这个例子，有blockingqueue的感觉。
+ * https://blog.csdn.net/weixin_42061805/article/details/92251917，
+ * 这个例子，有blockingqueue的感觉。
  */
 class AlternatePrint123UsingSynchronized2 {
 
@@ -87,7 +89,6 @@ class AlternatePrint123UsingSynchronized2 {
     private final Object objectC = new Object();
 
     public AlternatePrint123UsingSynchronized2() {
-        super();
     }
 
     public void printA() {
