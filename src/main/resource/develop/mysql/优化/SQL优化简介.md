@@ -1,0 +1,15 @@
+#[SQL 优化极简法则，还有谁不会？](https://mp.weixin.qq.com/s?__biz=MzAxNjk4ODE4OQ==&mid=2247494887&idx=3&sn=f521a3e6b9addec2ab2c006fc18592c5&chksm=9beecd95ac994483e3f83baa79c389ddeec05662d664a0b83063bd1c72791529e599e3e0c3ba&scene=126&sessionid=1605066663&key=860282314ab71371952c227f7ac036895a2e768bbd85481f5df896bab8c1c0e362b119d227017994ac35bc72c3310bccd04dc1f1ad7f3a07b2fa9f59f59c2b4fd6ad0444ab0f903df7f9ac7a1fb3d947d1cb48eebb0d2b0c382529ba73b5c9c971e3393b7f469875bce26d39af5b04d0fdadd5b632e3e151af4bb196a640ff38&ascene=1&uin=MjgwMjUxMjM1&devicetype=Windows+10+x64&version=6300002f&lang=zh_CN&exportkey=Aq9EFvNa6vJm2a2Orx%2FI2l8%3D&pass_ticket=OXXUXTiyz6HRc8uHyA9nVtzh4ILR8YbM5iKJCvQ9AtNyXsggt78edP7rFfGCx3u6&wx_header=0)
+
+## 法则一：只返回需要的结果
+
+## 法则二：确保查询使用了正确的索引
+
+## 法则三：尽量避免使用子查询
+
+## 法则四：不要使用 OFFSET 实现分页
+
+## 法则五：了解 SQL 子句的逻辑执行顺序
+
+
+## 引用
+>[SQL 优化极简法则，还有谁不会？](https://mp.weixin.qq.com/s?__biz=MzAxNjk4ODE4OQ==&mid=2247494887&idx=3&sn=f521a3e6b9addec2ab2c006fc18592c5&chksm=9beecd95ac994483e3f83baa79c389ddeec05662d664a0b83063bd1c72791529e599e3e0c3ba&scene=126&sessionid=1605066663&key=860282314ab71371952c227f7ac036895a2e768bbd85481f5df896bab8c1c0e362b119d227017994ac35bc72c3310bccd04dc1f1ad7f3a07b2fa9f59f59c2b4fd6ad0444ab0f903df7f9ac7a1fb3d947d1cb48eebb0d2b0c382529ba73b5c9c971e3393b7f469875bce26d39af5b04d0fdadd5b632e3e151af4bb196a640ff38&ascene=1&uin=MjgwMjUxMjM1&devicetype=Windows+10+x64&version=6300002f&lang=zh_CN&exportkey=Aq9EFvNa6vJm2a2Orx%2FI2l8%3D&pass_ticket=OXXUXTiyz6HRc8uHyA9nVtzh4ILR8YbM5iKJCvQ9AtNyXsggt78edP7rFfGCx3u6&wx_header=0)
