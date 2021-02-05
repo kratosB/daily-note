@@ -155,6 +155,7 @@ redis
 2. 数据库锁和事物的区别，事物什么时候会失败
 3. 业务幂等(这个问题无语了，非业务幂等其实就是让前端传一个参数，醉了)
     >[面试阿里被问：“你的项目是如何处理重复请求/并发请求的？”](https://mp.weixin.qq.com/s?__biz=MzAxMjEwMzQ5MA==&mid=2448895276&idx=2&sn=5481eee82913a5023765f3dd5f461cc7&chksm=8fb57701b8c2fe178852e717ba4308d2c79639d887c4f47586b033b7fd0b07a6e624a587bb67&xtrack=1&scene=90&subscene=93&sessionid=1605693431&clicktime=1605693485&enterid=1605693485&ascene=56&devicetype=android-29&version=270014ab&nettype=WIFI&abtest_cookie=AAACAA%3D%3D&lang=zh_CN&exportkey=Aq1ie%2BtDiQGkzSSNZCr%2BB8U%3D&pass_ticket=2It%2BeAOsIM3ngwvmKr4qsgTBkp6N4IRLSySk7JEw2ilEDQMsymAhtaEkZaWHeqxr&wx_header=1)
+    >
     >主要还是需要一个唯一标识，1-全局唯一标识，2-利用userId，请求参数等，造一个唯一标识
 
 
