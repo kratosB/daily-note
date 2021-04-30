@@ -668,6 +668,9 @@
     2. 1.8
         1. 同HashMap一样，链表也会在长度达到8的时候转化为红黑树，这样可以提升大量冲突时候的查询效率。
         2. 以某个位置的头结点（链表的头结点或红黑树的root结点）为锁，配合自旋+CAS避免不必要的锁开销，进一步提升并发性能。
+    3. 在1.8中ConcurrentHashMap的get操作全程不需要加锁，这是它安全高效的原因之一。[链接](https://mp.weixin.qq.com/s/O1xcRn3PK2sl37XTs1Z-ZA)
+        1. get操作全程不需要加锁是因为Node的成员val是用volatile修饰的和数组用volatile修饰没有关系。
+        2. 数组用volatile修饰主要是保证在数组扩容的时候保证可见性。
 2. ConcurrentNavigableMap接口与ConcurrentSkipListMap类。
     1. ConcurrentNavigableMap接口继承了NavigableMap接口，这个接口提供了针对给定搜索目标返回最接近匹配项的导航方法。
     2. ConcurrentNavigableMap接口的主要实现类是ConcurrentSkipListMap类。底层用了跳表。
@@ -858,3 +861,5 @@ Stream中的parallel方法，其实就跟parallelStream一样，略。
 >1. [深入浅出Java多线程](http://concurrent.redspider.group/RedSpider.html)
 >
 >2. [深入浅出Java多线程](https://redspider.gitbook.io/concurrent/)
+>
+>3. [为什么ConcurrentHashMap的读操作不需要加锁](https://www.cnblogs.com/keeya/p/9632958.html)

@@ -422,7 +422,7 @@
     3. count(id):innodb引擎会遍历整张表，把每一行的id值都取出来，返回给server层。server层拿到id后，判断是不可能为空的，就按行累加。
     4. count(字段):跟count(id)操作差不多，不过判断null的时候有点区别。如果是not null字段，按行累加行数。如果是可以为null的字段，要取出来判断是不是null，不是再累加行数。
     >实际上count(id)也可以优化成不用判断是否能为null，但是因为有count(*)可以用了，就懒得优化了，要用直接用count(*)就行了。
-
+    >>引用[count 浅析](https://mp.weixin.qq.com/s/YUZ-DE5-kxWkmWAwkdpzKQ '提到了查询成本')
 
 ## 15，答疑文章（一）：日志和索引相关问题
 
