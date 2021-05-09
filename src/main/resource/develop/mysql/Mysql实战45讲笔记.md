@@ -72,11 +72,19 @@
         >总的思路是把随机写转化为顺序写（要更新的数据在磁盘的不同位置上，所以是随机写。redo log就是一行一行往下写，所以是顺序写）
         >
         >跟后面讲到的change buffer相对应，change buffer是节约随机的IO读。
-    2. binlog。
-        1. 1
-        2. 2
-3. 11
-4. 11
+        5. redo log是物理日志，记录"在某个数据也上做了什么修改"
+     2. binlog。
+        1. binlog是逻辑日志，记录的是"给Id=2的这一行的value+1"这种数据。（statement模式就是原sql，row模式会根据影响的行的数量，转化成好多句）
+        2. binlog不是循环写，一直往下追加写，不会覆盖之前的数据。
+        3. redo log有checkpoint，所以知道哪些更新没有入库，可以crash-safe。binlog没有checkpoint，所以不知道哪些修改已经入库，哪些没有，只能从数据库的上一个backup点开始还原，理论上也能还原，但是成本很大，而且万一没有backup点，就没法还原了。
+3. 两阶段提交。
+   1. 先记redo log，设置为prepare，然后记binlog，然后把redo log改成commit。
+   2. 保证redo log和binlog的一致性。
+   3. 如果没有两阶段提交，假设先写redo log再写binlog，那么如果写完redo log的时候crash，binlog就没了，这样通过redo log找回来的数据里面多一条，如果后面要从binlog恢复的话，这一条就消失了。
+   4. 如果没有两阶段提交，假设先写binlog再写redo log，那么如果写完binlog的时候crash，redo log就没了，这样如果通过binlog恢复数据，就会多出一条。
+4. 两个参数的设置（建议这么做）。
+   1. innodb_flush_log_at_trx_commit=1，表示每次事务的redo log都直接持久化到磁盘。
+   1. sync_binlog=1，表示每次事务的binlog都持久化到磁盘。
 
 ## 3，事务隔离：为什么你改了我还看不见？
 
