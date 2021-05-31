@@ -464,10 +464,15 @@
     2. 如果使用优化过的binlog，来记录数据页的更改，实现支持崩溃恢复，那其实就是做了一个redo log。
     3. 文章里没写，但是我觉得应该还有这个因素，redo log支持事务。
 7. 追问6：那能不能反过来，只用redo log，不要binlog?
-    >redo log好像是类似snapshot，binlog类似backup。不确定。
     1. 从crash-safe角度来看可以。（没看懂，不明白两个日志有啥区别）
     2. redo log起不到归档作用。
     3. MySQL高可用基础就是binlog。
+    >redo log好像是类似snapshot，binlog类似backup。不确定。
+    >
+    >以前不懂，现在终于懂啦。
+    >1. redo log是循环写，binlog是增量写，所以redo log只能记录一小部分（例如4g）数据，太久之前的都被覆盖了，所以redo log不支持备份还原。
+    >1. redo log有checkPoint，binlog没有，所以没法确定crash的时候在哪里，所以没法crash-safe。但是redo log单独就支持crash-safe。
+    >1. 还有一点，redo log是数据页方面的日志，binlog只是sql语句形式的日志。如果1->2->3->4->5这几个语句按顺序执行，都没问题，如果不按顺序，binlog会得到不同的答案，redolog并不会。（这一点是我猜的），所以binlog的使用场景都是要按顺序的这一类。
 8. redo log一般设置多大？
     1. redo log太小会导致很快写满，经常强行刷redo log。一般建议至少4个1g的文件。
 9. 数据最终落盘，是redo log来的还是buffer pool。
