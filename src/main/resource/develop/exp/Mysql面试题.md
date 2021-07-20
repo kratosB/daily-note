@@ -14,6 +14,14 @@
 12. 说说 mysql 主从同步怎么做的吧？
 13. 那主从的延迟怎么解决呢？
 
+1. MySQL 索引使用什么数据结构？为什么用 B+做索引？
+2. 什么是最左匹配原则？
+3. 在建表的时候如何设计索引的？有没有做过索引优化 ？
+4. MyBatis用过吗? 一二级缓存清楚吗？
+5. MySQL 主从同步怎么做的？binlog清楚吗？
+6. MySQL 有没有做分库分表？怎么设计的？
+7. 用userId做的分库分表，现在需要用电话号码查询怎么办？
+
 ## 引用
 >1. [面试题系列：Mysql 夺命连环13问](https://mp.weixin.qq.com/s/RjJv4uRrqaCg5jqijAG0BA)
 >2. [MySQL常问面试题](https://mp.weixin.qq.com/s/7Si8yx3UXeBJKWzJPRokmA)

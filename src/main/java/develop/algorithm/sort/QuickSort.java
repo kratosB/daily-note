@@ -11,6 +11,14 @@ class QuickSort {
         for (int v : a) {
             System.out.print(v + " ");
         }
+        System.out.println();
+        a = new int[] {
+                5, 1, 6, 9, 3, 2, 6, 8, 3, 5
+        };
+        quickSort.quickSort2(a, 0, a.length - 1);
+        for (int v : a) {
+            System.out.print(v + " ");
+        }
     }
 
     /**
