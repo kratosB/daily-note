@@ -1,6 +1,7 @@
-package develop.algorithm.sword;
+package develop.algorithm.sword.linkedlist;
 
 import java.util.ArrayList;
+import java.util.Stack;
 
 /**
  * Created on 2021/7/20.
@@ -26,15 +27,22 @@ public class JZ3 {
         JZ3 solution = new JZ3();
         ArrayList<Integer> integers1 = solution.printListFromTailToHead1(listNode1);
         for (Integer integer : integers1) {
-            System.out.println(integer);
+            System.out.print(integer + " ");
         }
+        System.out.println();
         ArrayList<Integer> integers2 = solution.printListFromTailToHead2(listNode1);
         for (Integer integer : integers2) {
-            System.out.println(integer);
+            System.out.print(integer + " ");
         }
+        System.out.println();
         ArrayList<Integer> integers3 = solution.printListFromTailToHead3(listNode1);
         for (Integer integer : integers3) {
-            System.out.println(integer);
+            System.out.print(integer + " ");
+        }
+        System.out.println();
+        ArrayList<Integer> integers4 = solution.printListFromTailToHead4(listNode1);
+        for (Integer integer : integers4) {
+            System.out.print(integer + " ");
         }
     }
 
@@ -93,6 +101,19 @@ public class JZ3 {
         while (tmp != null) {
             list.add(0, tmp.val);
             tmp = tmp.next;
+        }
+        return list;
+    }
+
+    public ArrayList<Integer> printListFromTailToHead4(ListNode listNode) {
+        Stack<Integer> stack = new Stack<Integer>();
+        while (listNode!=null) {
+            stack.push(listNode.val);
+            listNode = listNode.next;
+        }
+        ArrayList<Integer> list = new ArrayList<>();
+        while (!stack.empty()) {
+            list.add(stack.pop());
         }
         return list;
     }

@@ -1,4 +1,4 @@
-package develop.algorithm.sword;
+package develop.algorithm.sword.linkedlist;
 
 import org.springframework.util.Assert;
 

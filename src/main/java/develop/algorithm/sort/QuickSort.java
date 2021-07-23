@@ -79,8 +79,8 @@ class QuickSort {
                 }
             }
             a[left] = temp;
-            quickSort(a, first, left - 1);
-            quickSort(a, right + 1, last);
+            quickSort2(a, first, left - 1);
+            quickSort2(a, right + 1, last);
         }
     }
 
