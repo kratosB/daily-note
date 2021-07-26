@@ -1,5 +1,5 @@
 # daily-note
-dddddddddd1
+dddddddddd
 
 
 
