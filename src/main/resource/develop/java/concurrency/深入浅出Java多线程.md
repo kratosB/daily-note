@@ -529,6 +529,8 @@
     1. 由链表结构组成的有界阻塞队列。内部结构是链表，具有链表的特性。
     2. 默认队列的大小是Integer.MAX_VALUE，也可以指定大小。此队列按照先进先出的原则对元素进行排序。
     3. 内部有两把锁，可以同时put和take。
+       1. 两把锁的signal地方，有一个if (c==0) signalNotEmpty()（signalNotFull同理），开始没看懂为什么c==0，后来发现是c>0的时候，链表里有值，不会有await存在，所以不需要signal。
+       >[LinkedBlockingQueue的put方法if (c == 0)signalNotEmpty()](https://www.jianshu.com/p/d54ef4bed9fa)
     4. 链表性能稍差点，需要new一个Node，也需要更多的gc。
 3. DelayQueue。
     1. 该队列中的元素只有当其指定的延迟时间到了，才能够从队列中获取到该元素。
