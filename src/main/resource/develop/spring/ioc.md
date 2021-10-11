@@ -18,5 +18,5 @@
 
 ## 引用
 
-> [深度解析spring源码IOC原理](https://mp.weixin.qq.com/s/CSYHUBdIP0D3dt5dOkaxew)
-> [看了绝对不会后悔之：spring Ioc原理](https://mp.weixin.qq.com/s/c_F1pva08rALLE0oqDz8YQ)
+>1. [深度解析spring源码IOC原理](https://mp.weixin.qq.com/s/CSYHUBdIP0D3dt5dOkaxew)
+>2. [看了绝对不会后悔之：spring Ioc原理](https://mp.weixin.qq.com/s/c_F1pva08rALLE0oqDz8YQ)
