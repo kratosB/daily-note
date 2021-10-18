@@ -54,7 +54,7 @@
 >1. [Spring系列第15篇：代理详解（java动态代理&CGLIB代理)](https://mp.weixin.qq.com/s?__biz=MzA5MTkxMDQ4MQ==&mid=2648934082&idx=1&sn=c919886400135a0152da23eaa1f276c7&chksm=88621efcbf1597eab943b064147b8fb8fd3dfbac0dc03f41d15d477ef94b60d4e8f78c66b262&token=1042984313&lang=zh_CN&scene=21#wechat_redirect)
 >2. [Spring系列第30篇：jdk动态代理和cglib代理](https://mp.weixin.qq.com/s?__biz=MzA5MTkxMDQ4MQ==&mid=2648934783&idx=1&sn=5531f14475a4addc6d4d47f0948b3208&chksm=88621141bf159857bc19d7bb545ed3ddc4152dcda9e126f27b83afc2e975dee1682de2d98ad6&token=1672930952&lang=zh_CN&scene=21#wechat_redirect)
 >3. [Spring系列第31篇：Aop概念详解](https://mp.weixin.qq.com/s?__biz=MzA5MTkxMDQ4MQ==&mid=2648934876&idx=1&sn=7794b50e658e0ec3e0aff6cf5ed4aa2e&chksm=886211e2bf1598f4e0e636170a4b36a5a5edd8811c8b7c30d61135cb114b0ce506a6fa84df0b&token=1672930952&lang=zh_CN&scene=21#wechat_redirect)
->4. [Aop总结](https://mp.weixin.qq.com/s/8B0cgwIREzhFWo7QNBLGug)
+>4. [Aop总结](https://mp.weixin.qq.com/s/8B0cgwIREzhFWo7QNBLGug `AOP，确实难，会让很多人懵逼，那是因为你没有看这篇文章！`)
 >5. [Spring之AOP面试题](https://mp.weixin.qq.com/s/rpKmCsqg_Ry7rcOTMF_-7A)
 >6. [Spring 如何实现 AOP](https://mp.weixin.qq.com/s/XMCnBcmTlrU9AidRbm2V3A)
 >7. [JDK动态代理[4]----ProxyGenerator生成代理类的字节码文件解析](https://mp.weixin.qq.com/s/XMCnBcmTlrU9AidRbm2V3A `介绍了为什么jdk只能代理接口，这篇是4，还有123可以看看`)
