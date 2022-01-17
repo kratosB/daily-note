@@ -308,8 +308,11 @@
 2. 带上value是为了防止锁被别人解锁。
 3. 删除锁要用lua，因为要判断value，又要删除，又要原子性。
 4. 可重入，也可以通过lua实现，就是把value做成一个map（value:count）。
+5. [RedisTemplate实现分布式锁](https://www.jianshu.com/p/30d7212a2770/)
+   1. 加锁的时候，2.xx之后版本的redisTemplate有setIfAbsent(key,value,time,unit)方法。
+   2. 解锁的时候，需要一个lua的配置文件，redisTemplate去execute一下这个脚本（配置文件）。
 
-## 11. redisson及其原理。
+## 11. [redisson及其原理。](https://mp.weixin.qq.com/s?__biz=MzkzMDI1NjcyOQ==&mid=2247495902&idx=1&sn=51413a133f87b1fafa49dbd0ff4908b5&chksm=c27fb2e8f5083bfedda596c0c4a4af99c3ca08bfd8d244b650f9cb35d7f6fed43741975b3a58&scene=178&cur_album_id=1918295695426404359#rd `Redis 分布式锁的正确实现原理演化历程与 Redisson 实战总结`)
 
 1. 功能：
    1. 防止业务逻辑还没做完，锁已经过期了。
