@@ -30,7 +30,7 @@ public class Lfu<K, V> {
 
     Map<K, LfuNode> nodeMap;
 
-    Map<Integer, List<LfuNode>> countMap;
+    Map<Integer, List<LfuNode>> levelMap;
 
     int minCount;
 
@@ -38,7 +38,7 @@ public class Lfu<K, V> {
 
     public Lfu(int capacity) {
         nodeMap = new HashMap<>();
-        countMap = new HashMap<>();
+        levelMap = new HashMap<>();
         minCount = 0;
         this.capacity = capacity;
     }
@@ -67,40 +67,40 @@ public class Lfu<K, V> {
         }
     }
 
+    private void moveToNextLevel(LfuNode node) {
+        int oldCount = node.count;
+        List<LfuNode> oldLevelList = levelMap.get(oldCount);
+        oldLevelList.remove(node);
+        if (minCount == oldCount && oldLevelList.size() == 0) {
+            minCount++;
+        }
+        int newCount = ++node.count;
+        List<LfuNode> newLevelList = levelMap.get(newCount);
+        if (newLevelList == null) {
+            newLevelList = new ArrayList<>();
+            newLevelList.add(node);
+            levelMap.put(newCount, newLevelList);
+        } else {
+            newLevelList.add(node);
+        }
+    }
+
     private void removeMinNode() {
-        List<LfuNode> minLevelList = countMap.get(minCount);
+        List<LfuNode> minLevelList = levelMap.get(minCount);
         LfuNode remove = minLevelList.remove(0);
         nodeMap.remove(remove.key);
     }
 
     private void addNewNode(LfuNode node) {
         nodeMap.put(node.key, node);
-        List<LfuNode> levelOneList = countMap.get(1);
+        minCount = 1;
+        List<LfuNode> levelOneList = levelMap.get(minCount);
         if (levelOneList == null) {
             levelOneList = new ArrayList<>();
             levelOneList.add(node);
-            countMap.put(1, levelOneList);
+            levelMap.put(minCount, levelOneList);
         } else {
             levelOneList.add(node);
-        }
-        minCount = 1;
-    }
-
-    private void moveToNextLevel(LfuNode node) {
-        int oldCount = node.count;
-        List<LfuNode> oldLevelList = countMap.get(oldCount);
-        oldLevelList.remove(node);
-        if (minCount == oldCount && oldLevelList.size() == 0) {
-            minCount++;
-        }
-        int newCount = ++node.count;
-        List<LfuNode> newLevelList = countMap.get(newCount);
-        if (newLevelList == null) {
-            newLevelList = new ArrayList<>();
-            newLevelList.add(node);
-            countMap.put(newCount, newLevelList);
-        } else {
-            newLevelList.add(node);
         }
     }
 
@@ -108,7 +108,7 @@ public class Lfu<K, V> {
         int count = nodeMap.size();
         int length = 0;
         while (count > 0) {
-            List<LfuNode> nodes = countMap.get(length);
+            List<LfuNode> nodes = levelMap.get(length);
             if (nodes != null && nodes.size() > 0) {
                 for (LfuNode node : nodes) {
                     System.out.print(node.key + "|" + node.value + "|" + node.count + " , ");

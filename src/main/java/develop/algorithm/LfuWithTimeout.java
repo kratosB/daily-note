@@ -1,27 +1,28 @@
 package develop.algorithm;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class LfuWithTimeout {
+public class LfuWithTimeout<K, V> {
 
-    static class Node {
+    class Node {
 
-        String key;
+        K key;
 
-        String value;
-
-        long time;
+        V value;
 
         int count;
+
+        long time;
 
         Node pre;
 
         Node next;
 
-        public Node(String key, String value, long time, int count) {
+        public Node(K key, V value, long time, int count) {
             this.key = key;
             this.value = value;
             this.time = time;
@@ -31,177 +32,167 @@ public class LfuWithTimeout {
 
     int capacity;
 
-    long timeoutPeriod;
-
-    Map<String, Node> nodeMap;
-
-    Map<Integer, LinkedList<Node>> countMap;
-
     int minCount;
+
+    Map<K, Node> nodeMap;
+
+    Map<Integer, List<Node>> levelMap;
 
     Node head;
 
     Node tail;
 
-    public LfuWithTimeout(int size, long timeoutPeriod) {
-        this.capacity = size;
-        this.timeoutPeriod = timeoutPeriod;
+    long timeout;
+
+    public LfuWithTimeout(int capacity, long timeout) {
+        this.capacity = capacity;
         this.minCount = 0;
-        nodeMap = new HashMap<>(size);
-        countMap = new HashMap<>(size);
+        this.nodeMap = new HashMap<>();
+        this.levelMap = new HashMap<>();
+        this.timeout = timeout;
     }
 
-    public String get(String key) {
+    public V get(K key) {
         Node node = nodeMap.get(key);
         if (node == null) {
             return null;
         } else {
-            node.count++;
             node.time = System.currentTimeMillis();
-            countMapRefresh(node);
-            nodesRefresh(node);
+            moveToNextLevel(node);
+            moveToTail(node);
             return node.value;
         }
     }
 
-    public void put(String key, String value) {
+    public void set(K key, V value) {
         Node node = nodeMap.get(key);
         if (node == null) {
             node = new Node(key, value, System.currentTimeMillis(), 1);
             if (nodeMap.size() == capacity) {
-                boolean removed = timeoutNodeRemove();
+                boolean removed = removeTimeoutNode();
                 if (!removed) {
-                    minNodeRemove();
+                    removeMinNode();
                 }
             }
-            nodeMap.put(key, node);
-            countMapAdd(node);
-            nodeListAdd(node);
+            addNewNode(node);
+            addToTail(node);
         } else {
             node.value = value;
-            node.count++;
             node.time = System.currentTimeMillis();
-            countMapRefresh(node);
-            nodesRefresh(node);
+            moveToNextLevel(node);
+            moveToTail(node);
         }
     }
 
-    public void countMapAdd(Node node) {
-        LinkedList<Node> nodeList = countMap.get(1);
-        if (nodeList == null) {
-            nodeList = new LinkedList<>();
-            nodeList.add(node);
-            countMap.put(1, nodeList);
-        } else {
-            nodeList.add(node);
+    private void moveToNextLevel(Node node) {
+        int count = node.count;
+        List<Node> preLevel = levelMap.get(count);
+        preLevel.remove(node);
+        if (preLevel.size() == 0 && minCount == count) {
+            minCount++;
         }
+        int newCount = ++node.count;
+        List<Node> nextLevel = levelMap.get(newCount);
+        if (nextLevel == null) {
+            nextLevel = new ArrayList<>();
+            nextLevel.add(node);
+            levelMap.put(newCount, nextLevel);
+        } else {
+            nextLevel.add(node);
+        }
+    }
+
+    private void addNewNode(Node node) {
+        nodeMap.put(node.key, node);
         minCount = 1;
-    }
-
-    public void countMapRefresh(Node node) {
-        int newCount = node.count;
-        int oldCount = newCount - 1;
-        LinkedList<Node> oldNodeList = countMap.get(oldCount);
-        oldNodeList.remove(node);
-        if (oldNodeList.size() == 0) {
-            if (minCount == oldCount) {
-                minCount++;
-            }
-        }
-        LinkedList<Node> newNodeList = countMap.get(newCount);
-        if (newNodeList == null) {
-            newNodeList = new LinkedList<>();
-            newNodeList.addLast(node);
-            countMap.put(newCount, newNodeList);
+        List<Node> oneLevel = levelMap.get(minCount);
+        if (oneLevel == null) {
+            oneLevel = new ArrayList<>();
+            oneLevel.add(node);
+            levelMap.put(minCount, oneLevel);
         } else {
-            newNodeList.addLast(node);
+            oneLevel.add(node);
         }
     }
 
-    public void nodeListAdd(Node node) {
+    private void addToTail(Node node) {
         if (head == null) {
             head = node;
+            tail = node;
         } else {
             tail.next = node;
             node.pre = tail;
+            tail = node;
         }
-        tail = node;
     }
 
-    public void nodesRefresh(Node node) {
-        if (tail == node) {
-            return;
-        }
-        if (head == node) {
-            head = node.next;
-            head.pre = null;
-        } else {
-            Node next = node.next;
-            Node pre = node.pre;
-            pre.next = next;
-            next.pre = pre;
-        }
-        tail.next = node;
-        node.pre = tail;
-        node.next = null;
-        tail = node;
-    }
-
-    private boolean timeoutNodeRemove() {
-        Node headNode = head;
-        long headTime = headNode.time;
-        System.out.println(System.currentTimeMillis());
-        System.out.println(headTime);
-        if (System.currentTimeMillis() - headTime > timeoutPeriod) {
+    private boolean removeTimeoutNode() {
+        if (System.currentTimeMillis() - head.time > timeout) {
+            Node removed = nodeMap.remove(head.key);
             if (head == tail) {
                 head = null;
                 tail = null;
             } else {
-                head = headNode.next;
+                head = removed.next;
                 head.pre = null;
-                headNode.next = null;
+                removed.next = null;
             }
-            int count = headNode.count;
-            LinkedList<Node> nodeList = countMap.get(count);
-            nodeList.remove(headNode);
-            nodeMap.remove(headNode.key);
+            List<Node> level = levelMap.get(removed.count);
+            level.remove(removed);
             return true;
         } else {
             return false;
         }
     }
 
-    public void minNodeRemove() {
-        LinkedList<Node> nodeList = countMap.get(minCount);
-        Node first = nodeList.removeFirst();
-        nodeMap.remove(first.key);
-        if (head == first) {
-            head = first.next;
-            first.next = null;
-            if (head != null) {
-                head.pre = null;
-            } else {
-                tail = null;
-            }
-        } else if (tail == first) {
-            tail = first.pre;
-            tail.next = null;
-            first.pre = null;
+    private void moveToTail(Node node) {
+        if (node == tail) {
+            return;
+        } else if (node == head) {
+            head = head.next;
+            head.pre = null;
         } else {
-            Node next = first.next;
-            Node pre = first.pre;
+            Node pre = node.pre;
+            Node next = node.next;
             pre.next = next;
             next.pre = pre;
-            first.pre = null;
-            first.next = null;
         }
+        node.next = null;
+        tail.next = node;
+        node.pre = tail;
+        tail = node;
+    }
+
+    private void removeMinNode() {
+        List<Node> minLevel = levelMap.get(minCount);
+        Node removed = minLevel.remove(0);
+        nodeMap.remove(removed.key);
+        if (removed == head) {
+            if (head == tail) {
+                head = null;
+                tail = null;
+            } else {
+                head = head.next;
+                head.pre = null;
+            }
+        } else if (removed == tail) {
+            tail = tail.pre;
+            tail.next = null;
+        } else {
+            Node pre = removed.pre;
+            Node next = removed.next;
+            pre.next = next;
+            next.pre = pre;
+        }
+        removed.pre = null;
+        removed.next = null;
     }
 
     public void print() {
         int count = nodeMap.size();
         int length = 0;
         while (count > 0) {
-            LinkedList<Node> nodes = countMap.get(length);
+            List<Node> nodes = levelMap.get(length);
             if (nodes != null && nodes.size() > 0) {
                 for (Node node : nodes) {
                     System.out.print(node.key + "|" + node.value + "|" + node.count + " , ");
@@ -214,24 +205,24 @@ public class LfuWithTimeout {
     }
 
     public static void main(String[] args) throws Exception {
-        LfuWithTimeout lfuTest = new LfuWithTimeout(3,2000);
-        lfuTest.put("1","1");
-        lfuTest.put("2","2");
-        lfuTest.put("3","3");
+        LfuWithTimeout<String, String> lfuTest = new LfuWithTimeout<>(3, 2000);
+        lfuTest.set("1", "1");
+        lfuTest.set("2", "2");
+        lfuTest.set("3", "3");
         lfuTest.print();
         System.out.println("3-------");
-        lfuTest.put("4","4");
+        lfuTest.set("4", "4");
         lfuTest.print();
         System.out.println("4-------");
-        lfuTest.put("3","3");
-        lfuTest.put("5","5");
+        lfuTest.set("3", "3");
+        lfuTest.set("5", "5");
         lfuTest.print();
         System.out.println("35-------");
-        lfuTest.put("6","6");
+        lfuTest.set("6", "6");
         lfuTest.print();
         System.out.println("6-------");
         TimeUnit.SECONDS.sleep(3);
-        lfuTest.put("7","7");
+        lfuTest.set("7", "7");
         lfuTest.print();
         System.out.println("7-------");
     }
