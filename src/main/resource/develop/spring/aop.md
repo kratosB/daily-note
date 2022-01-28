@@ -57,4 +57,4 @@
 >4. [Aop总结](https://mp.weixin.qq.com/s/8B0cgwIREzhFWo7QNBLGug `AOP，确实难，会让很多人懵逼，那是因为你没有看这篇文章！`)
 >5. [Spring之AOP面试题](https://mp.weixin.qq.com/s/rpKmCsqg_Ry7rcOTMF_-7A)
 >6. [Spring 如何实现 AOP](https://mp.weixin.qq.com/s/XMCnBcmTlrU9AidRbm2V3A)
->7. [JDK动态代理[4]----ProxyGenerator生成代理类的字节码文件解析](https://mp.weixin.qq.com/s/XMCnBcmTlrU9AidRbm2V3A `介绍了为什么jdk只能代理接口，这篇是4，还有123可以看看`)
+>7. [JDK动态代理[4]----ProxyGenerator生成代理类的字节码文件解析](https://www.cnblogs.com/liuyun1995/p/8144706.html `介绍了为什么jdk只能代理接口，这篇是4，还有123可以看看`)
