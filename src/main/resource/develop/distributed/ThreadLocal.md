@@ -39,3 +39,5 @@
 2. [原来这就是比 ThreadLocal 更快的玩意](https://mp.weixin.qq.com/s?__biz=MzkxNTE3NjQ3MA==&mid=2247491864&idx=1&sn=a3854250a148526e9136427b738dc95a&chksm=c1618c61f6160577400cf0d33a14545eb9aee2b15d4ff767f9e93ac2d75559f84374d361008b&scene=21#wechat_redirect `fastThreadLocal`)
 3. [ThreadLocal的短板，我TTL来补！](https://mp.weixin.qq.com/s?__biz=MzkxNTE3NjQ3MA==&mid=2247492913&idx=1&sn=3a5efee12ca65f3c3113930b1f0e35d0&chksm=c1618848f616015e20a316cc7cbd81806f2d853c314385af36ce1ff4a6adc797b1b822009050&scene=178&cur_album_id=2058599863742758913#rd)
 4. [我把之前写的有关 ThreadLocal 的所有，在这篇做个汇总](https://mp.weixin.qq.com/s/bECVeuxE-WIYmvXbF2V3QA)
+5. [ThreadLocal原理分析与使用场景](https://mp.weixin.qq.com/s/BP9Dp9SIFoyUySYKZj4ojQ)
+6. [ThreadLocal 内存泄露问题](https://blog.csdn.net/jh39456194/article/details/107304997)
