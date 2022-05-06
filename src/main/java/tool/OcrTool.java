@@ -23,7 +23,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
-import tool.JsonMapper;
 import com.tencentcloudapi.common.Credential;
 import com.tencentcloudapi.common.profile.ClientProfile;
 import com.tencentcloudapi.common.profile.HttpProfile;
@@ -89,7 +88,7 @@ public class OcrTool {
         } catch (Exception e) {
             errorMessage.append("错误 = （").append(e.getMessage()).append(")");
         }
-        System.out.println(errorMessage.toString());
+        System.out.println(errorMessage);
     }
 
     private static List<String> getFilePath(File file) {
@@ -128,10 +127,8 @@ public class OcrTool {
         }
     }
 
-    // qxsecretid:AKIDnQW3yisYIuLKZpxZmFZCyXUCbSX23vsO
-    // qxsecretkey:nOc2MbGQMqETy4URkpGXbkK36HLPcm5Z
     private static String ocr(String encodeValue) throws Exception {
-        Credential cred = new Credential("AKIDnQW3yisYIuLKZpxZmFZCyXUCbSX23vsO", "nOc2MbGQMqETy4URkpGXbkK36HLPcm5Z");
+        Credential cred = new Credential("", "");
         HttpProfile httpProfile = new HttpProfile();
         httpProfile.setEndpoint("ocr.ap-shanghai.tencentcloudapi.com");
         ClientProfile clientProfile = new ClientProfile();
