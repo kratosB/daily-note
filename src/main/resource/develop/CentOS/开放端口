@@ -1,3 +1,0 @@
-修改/etc/sysconfig/iptables 文件
-
-/etc/init.d/iptables restart
