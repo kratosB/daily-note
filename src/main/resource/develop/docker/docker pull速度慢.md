@@ -7,6 +7,11 @@ vim /etc/docker/daemon.json
 加入如下内容：
 {"registry-mirrors": ["https://fy707np5.mirror.aliyuncs.com"]}
 
+>科大镜像：https://docker.mirrors.ustc.edu.cn/  
+>网易：https://hub-mirror.c.163.com/  
+>阿里云：https://<你的ID>.mirror.aliyuncs.com  
+>七牛云加速器：https://reg-mirror.qiniu.com  
+
 systemctl daemon-reload
 systemctl restart docker
 
